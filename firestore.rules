@@ -1,0 +1,612 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global default-deny safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Reusable hardened primitives
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerified() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isValidCompositeId(id) {
+      return id is string && id.size() >= 3 && id.size() <= 260 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // Entity Validation Helpers
+    function isValidWorldClock(data) {
+      return data.keys().hasAll(['id', 'epochStartMs', 'weekDurationMs', 'startYear', 'startWeek', 'initializedBy', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['id', 'epochStartMs', 'weekDurationMs', 'startYear', 'startWeek', 'initializedBy', 'createdAt', 'updatedAt'])
+        && data.id == 'clock'
+        && data.epochStartMs is number && data.epochStartMs > 1500000000000
+        && data.weekDurationMs == 900000
+        && data.startYear == 2018
+        && data.startWeek == 1
+        && data.initializedBy is string && data.initializedBy.size() >= 1 && data.initializedBy.size() <= 128
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidOnlineArtist(data) {
+      return data.keys().hasAll([
+          'uid', 'artistId', 'name', 'handle', 'avatar', 'country', 'careerMode',
+          'fandomName', 'followers', 'monthlyListeners', 'totalStreams',
+          'youtubeSubscribers', 'popularity', 'hype', 'isPublic', 'lastActiveAtMs',
+          'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'uid', 'artistId', 'name', 'handle', 'avatar', 'headerImage', 'bio',
+          'country', 'careerMode', 'fandomName', 'isVerified', 'isGoldTheme',
+          'followers', 'monthlyListeners', 'totalStreams', 'youtubeSubscribers',
+          'instagramFollowers', 'tiktokFollowers', 'popularity', 'hype', 'netWorth',
+          'isPublic', 'lastActiveAtMs', 'createdAt', 'updatedAt'
+        ])
+        && isValidId(data.uid)
+        && isValidId(data.artistId)
+        && data.name is string && data.name.size() >= 1 && data.name.size() <= 120
+        && data.handle is string && data.handle.size() >= 1 && data.handle.size() <= 64
+        && data.avatar is string && data.avatar.size() <= 350000
+        && (!('headerImage' in data) || (data.headerImage is string && data.headerImage.size() <= 350000))
+        && (!('bio' in data) || (data.bio is string && data.bio.size() <= 500))
+        && data.country is string && data.country.size() >= 1 && data.country.size() <= 64
+        && data.careerMode in ['solo', 'group']
+        && data.fandomName is string && data.fandomName.size() >= 1 && data.fandomName.size() <= 100
+        && (!('isVerified' in data) || data.isVerified is bool)
+        && (!('isGoldTheme' in data) || data.isGoldTheme is bool)
+        && data.followers is number && data.followers >= 0
+        && data.monthlyListeners is number && data.monthlyListeners >= 0
+        && data.totalStreams is number && data.totalStreams >= 0
+        && data.youtubeSubscribers is number && data.youtubeSubscribers >= 0
+        && (!('instagramFollowers' in data) || (data.instagramFollowers is number && data.instagramFollowers >= 0))
+        && (!('tiktokFollowers' in data) || (data.tiktokFollowers is number && data.tiktokFollowers >= 0))
+        && data.popularity is number && data.popularity >= 0
+        && data.hype is number && data.hype >= 0
+        && (!('netWorth' in data) || data.netWorth is number)
+        && data.isPublic == true
+        && data.lastActiveAtMs is number && data.lastActiveAtMs > 0
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidOnlineSong(data) {
+      return data.keys().hasAll([
+          'id', 'ownerUid', 'artistId', 'artistName', 'artistAvatar', 'title',
+          'genre', 'coverArt', 'releaseYear', 'releaseWeek', 'totalStreams',
+          'weeklyStreams', 'weeklySales', 'totalSales', 'hot100Points', 'ukPoints',
+          'isPublic', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'id', 'ownerUid', 'artistId', 'artistName', 'artistAvatar', 'title',
+          'genre', 'coverArt', 'explicit', 'duration', 'releaseYear', 'releaseWeek',
+          'totalStreams', 'weeklyStreams', 'weeklySales', 'totalSales',
+          'radioImpressions', 'radioPlays', 'hot100Points', 'ukPoints',
+          'isAvailableOnStreaming', 'exclusiveTo', 'albumId', 'albumTitle',
+          'features', 'regionalStreams', 'lastUpdatedWeekKey', 'isPublic',
+          'createdAt', 'updatedAt'
+        ])
+        && isValidId(data.id)
+        && isValidId(data.ownerUid)
+        && isValidId(data.artistId)
+        && data.artistName is string && data.artistName.size() >= 1 && data.artistName.size() <= 120
+        && data.artistAvatar is string && data.artistAvatar.size() <= 350000
+        && data.title is string && data.title.size() >= 1 && data.title.size() <= 200
+        && data.genre is string && data.genre.size() >= 1 && data.genre.size() <= 80
+        && data.coverArt is string && data.coverArt.size() <= 350000
+        && (!('explicit' in data) || data.explicit is bool)
+        && (!('duration' in data) || (data.duration is number && data.duration >= 0))
+        && data.releaseYear is number && data.releaseYear >= 2018
+        && data.releaseWeek is number && data.releaseWeek >= 1 && data.releaseWeek <= 52
+        && data.totalStreams is number && data.totalStreams >= 0
+        && data.weeklyStreams is number && data.weeklyStreams >= 0
+        && data.weeklySales is number && data.weeklySales >= 0
+        && data.totalSales is number && data.totalSales >= 0
+        && (!('radioImpressions' in data) || (data.radioImpressions is number && data.radioImpressions >= 0))
+        && (!('radioPlays' in data) || (data.radioPlays is number && data.radioPlays >= 0))
+        && data.hot100Points is number && data.hot100Points >= 0
+        && data.ukPoints is number && data.ukPoints >= 0
+        && (!('isAvailableOnStreaming' in data) || data.isAvailableOnStreaming is bool)
+        && (!('exclusiveTo' in data) || (data.exclusiveTo is string && data.exclusiveTo.size() <= 40))
+        && (!('albumId' in data) || (data.albumId is string && data.albumId.size() <= 128))
+        && (!('albumTitle' in data) || (data.albumTitle is string && data.albumTitle.size() <= 200))
+        && (!('features' in data) || (data.features is list && data.features.size() <= 10 && (data.features.size() == 0 || data.features[0] is string)))
+        && (!('regionalStreams' in data) || data.regionalStreams is map)
+        && (!('lastUpdatedWeekKey' in data) || data.lastUpdatedWeekKey is number)
+        && data.isPublic == true
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidOnlineRelease(data) {
+      return data.keys().hasAll([
+          'id', 'ownerUid', 'artistId', 'artistName', 'artistAvatar', 'title',
+          'type', 'coverArt', 'releaseYear', 'releaseWeek', 'isScheduled',
+          'preSaves', 'weeklyActivity', 'totalSales', 'totalStreams', 'isPublic',
+          'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'id', 'ownerUid', 'artistId', 'artistName', 'artistAvatar', 'title',
+          'type', 'coverArt', 'releaseYear', 'releaseWeek', 'isScheduled',
+          'preSaves', 'weeklyActivity', 'weeklyPureSales', 'weeklySES',
+          'totalSales', 'totalStreams', 'songIds', 'songTitles', 'labelName',
+          'lastUpdatedWeekKey', 'isPublic', 'createdAt', 'updatedAt'
+        ])
+        && isValidId(data.id)
+        && isValidId(data.ownerUid)
+        && isValidId(data.artistId)
+        && data.artistName is string && data.artistName.size() >= 1 && data.artistName.size() <= 120
+        && data.artistAvatar is string && data.artistAvatar.size() <= 350000
+        && data.title is string && data.title.size() >= 1 && data.title.size() <= 200
+        && data.type is string && data.type.size() >= 1 && data.type.size() <= 40
+        && data.coverArt is string && data.coverArt.size() <= 350000
+        && data.releaseYear is number && data.releaseYear >= 2018
+        && data.releaseWeek is number && data.releaseWeek >= 1 && data.releaseWeek <= 52
+        && data.isScheduled is bool
+        && data.preSaves is number && data.preSaves >= 0
+        && data.weeklyActivity is number && data.weeklyActivity >= 0
+        && (!('weeklyPureSales' in data) || (data.weeklyPureSales is number && data.weeklyPureSales >= 0))
+        && (!('weeklySES' in data) || (data.weeklySES is number && data.weeklySES >= 0))
+        && data.totalSales is number && data.totalSales >= 0
+        && data.totalStreams is number && data.totalStreams >= 0
+        && (!('songIds' in data) || (data.songIds is list && data.songIds.size() <= 60 && (data.songIds.size() == 0 || data.songIds[0] is string)))
+        && (!('songTitles' in data) || (data.songTitles is list && data.songTitles.size() <= 60 && (data.songTitles.size() == 0 || data.songTitles[0] is string)))
+        && (!('labelName' in data) || (data.labelName is string && data.labelName.size() <= 120))
+        && (!('lastUpdatedWeekKey' in data) || data.lastUpdatedWeekKey is number)
+        && data.isPublic == true
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidOnlineVideo(data) {
+      return data.keys().hasAll([
+          'id', 'ownerUid', 'artistId', 'artistName', 'artistAvatar', 'title',
+          'type', 'thumbnail', 'views', 'weeklyViews', 'likes', 'releaseYear',
+          'releaseWeek', 'createdAtMs', 'isPublic', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'id', 'ownerUid', 'artistId', 'artistName', 'artistAvatar', 'songId',
+          'songTitle', 'title', 'type', 'thumbnail', 'description', 'views',
+          'weeklyViews', 'likes', 'spotifyViews', 'isOnSpotify', 'releaseYear',
+          'releaseWeek', 'createdAtMs', 'isPublic', 'createdAt', 'updatedAt'
+        ])
+        && isValidId(data.id)
+        && isValidId(data.ownerUid)
+        && isValidId(data.artistId)
+        && data.artistName is string && data.artistName.size() >= 1 && data.artistName.size() <= 120
+        && data.artistAvatar is string && data.artistAvatar.size() <= 350000
+        && (!('songId' in data) || (data.songId is string && data.songId.size() <= 128))
+        && (!('songTitle' in data) || (data.songTitle is string && data.songTitle.size() <= 200))
+        && data.title is string && data.title.size() >= 1 && data.title.size() <= 200
+        && data.type is string && data.type.size() >= 1 && data.type.size() <= 60
+        && data.thumbnail is string && data.thumbnail.size() <= 350000
+        && (!('description' in data) || (data.description is string && data.description.size() <= 1000))
+        && data.views is number && data.views >= 0
+        && data.weeklyViews is number && data.weeklyViews >= 0
+        && data.likes is number && data.likes >= 0
+        && (!('spotifyViews' in data) || (data.spotifyViews is number && data.spotifyViews >= 0))
+        && (!('isOnSpotify' in data) || data.isOnSpotify is bool)
+        && data.releaseYear is number && data.releaseYear >= 2018
+        && data.releaseWeek is number && data.releaseWeek >= 1 && data.releaseWeek <= 52
+        && data.createdAtMs is number && data.createdAtMs > 0
+        && data.isPublic == true
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidOnlineXPost(data) {
+      return data.keys().hasAll([
+          'id', 'ownerUid', 'authorId', 'authorName', 'authorUsername',
+          'authorAvatar', 'content', 'likes', 'retweets', 'views', 'gameYear',
+          'gameWeek', 'createdAtMs', 'isPublic', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'id', 'ownerUid', 'authorId', 'authorName', 'authorUsername',
+          'authorAvatar', 'authorVerified', 'authorGoldVerified', 'content',
+          'image', 'likes', 'retweets', 'views', 'replyToId', 'quoteOfId',
+          'quoteAuthorName', 'quoteAuthorUsername', 'quoteContent', 'gameYear',
+          'gameWeek', 'createdAtMs', 'isPublic', 'createdAt', 'updatedAt'
+        ])
+        && isValidId(data.id)
+        && isValidId(data.ownerUid)
+        && isValidId(data.authorId)
+        && data.authorName is string && data.authorName.size() >= 1 && data.authorName.size() <= 120
+        && data.authorUsername is string && data.authorUsername.size() >= 1 && data.authorUsername.size() <= 64
+        && data.authorAvatar is string && data.authorAvatar.size() <= 350000
+        && (!('authorVerified' in data) || data.authorVerified is bool)
+        && (!('authorGoldVerified' in data) || data.authorGoldVerified is bool)
+        && data.content is string && data.content.size() <= 1000
+        && (!('image' in data) || (data.image is string && data.image.size() <= 350000))
+        && data.likes is number && data.likes >= 0
+        && data.retweets is number && data.retweets >= 0
+        && data.views is number && data.views >= 0
+        && (!('replyToId' in data) || (data.replyToId is string && data.replyToId.size() <= 128))
+        && (!('quoteOfId' in data) || (data.quoteOfId is string && data.quoteOfId.size() <= 128))
+        && (!('quoteAuthorName' in data) || (data.quoteAuthorName is string && data.quoteAuthorName.size() <= 120))
+        && (!('quoteAuthorUsername' in data) || (data.quoteAuthorUsername is string && data.quoteAuthorUsername.size() <= 64))
+        && (!('quoteContent' in data) || (data.quoteContent is string && data.quoteContent.size() <= 500))
+        && data.gameYear is number && data.gameYear >= 2018
+        && data.gameWeek is number && data.gameWeek >= 1 && data.gameWeek <= 52
+        && data.createdAtMs is number && data.createdAtMs > 0
+        && data.isPublic == true
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidOnlineXReaction(data) {
+      return data.keys().hasAll(['uid', 'liked', 'reposted', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['uid', 'liked', 'reposted', 'createdAt', 'updatedAt'])
+        && isValidId(data.uid)
+        && data.liked is bool
+        && data.reposted is bool
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidOnlineFollow(data) {
+      return data.keys().hasAll(['id', 'followerUid', 'targetUid', 'isPublic', 'createdAt'])
+        && data.keys().hasOnly(['id', 'followerUid', 'targetUid', 'isPublic', 'createdAt'])
+        && isValidCompositeId(data.id)
+        && isValidId(data.followerUid)
+        && isValidId(data.targetUid)
+        && data.followerUid != data.targetUid
+        && data.isPublic == true
+        && data.createdAt is timestamp;
+    }
+
+    function isValidOnlineChat(data) {
+      return data.keys().hasAll([
+          'id', 'participantUids', 'participantNames', 'participantHandles',
+          'participantAvatars', 'lastMessageText', 'lastMessageAtMs',
+          'lastSenderUid', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'id', 'participantUids', 'participantNames', 'participantHandles',
+          'participantAvatars', 'lastMessageText', 'lastMessageAtMs',
+          'lastSenderUid', 'createdAt', 'updatedAt'
+        ])
+        && isValidCompositeId(data.id)
+        && data.participantUids is list && data.participantUids.size() == 2
+        && data.participantUids[0] is string && data.participantUids[1] is string
+        && data.participantNames is map
+        && data.participantHandles is map
+        && data.participantAvatars is map
+        && data.lastMessageText is string && data.lastMessageText.size() <= 1000
+        && data.lastMessageAtMs is number && data.lastMessageAtMs > 0
+        && isValidId(data.lastSenderUid)
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidOnlineChatMessage(data) {
+      return data.keys().hasAll([
+          'id', 'chatId', 'participantUids', 'senderUid', 'senderName',
+          'senderAvatar', 'text', 'gameYear', 'gameWeek', 'createdAtMs', 'createdAt'
+        ])
+        && data.keys().hasOnly([
+          'id', 'chatId', 'participantUids', 'senderUid', 'senderName',
+          'senderAvatar', 'text', 'gameYear', 'gameWeek', 'createdAtMs', 'createdAt'
+        ])
+        && isValidId(data.id)
+        && isValidCompositeId(data.chatId)
+        && data.participantUids is list && data.participantUids.size() == 2
+        && data.participantUids[0] is string && data.participantUids[1] is string
+        && isValidId(data.senderUid)
+        && data.senderName is string && data.senderName.size() >= 1 && data.senderName.size() <= 120
+        && data.senderAvatar is string && data.senderAvatar.size() <= 350000
+        && data.text is string && data.text.size() >= 1 && data.text.size() <= 2000
+        && data.gameYear is number && data.gameYear >= 2018
+        && data.gameWeek is number && data.gameWeek >= 1 && data.gameWeek <= 52
+        && data.createdAtMs is number && data.createdAtMs > 0
+        && data.createdAt is timestamp;
+    }
+
+    function isValidGameStateSave(data) {
+      return data.keys().hasAll(['userId', 'gameState', 'updatedAt'])
+        && data.keys().hasOnly(['userId', 'gameState', 'updatedAt'])
+        && isValidId(data.userId)
+        && data.gameState is map
+        && data.updatedAt is number && data.updatedAt > 0;
+    }
+
+    function isValidLeaderboardEntry(data) {
+      return data.keys().hasAll(['userId', 'score', 'artistName', 'itemName', 'imageUrl', 'updatedAt'])
+        && data.keys().hasOnly(['userId', 'score', 'artistName', 'itemName', 'imageUrl', 'updatedAt'])
+        && isValidId(data.userId)
+        && data.score is number && data.score >= 0
+        && data.artistName is string && data.artistName.size() >= 1 && data.artistName.size() <= 120
+        && data.itemName is string && data.itemName.size() <= 200
+        && data.imageUrl is string && data.imageUrl.size() <= 2500
+        && data.updatedAt is timestamp;
+    }
+
+    // 1. World Clock
+    match /world/{docId} {
+      allow get: if isSignedIn() && isValidId(docId);
+      allow list: if false;
+      allow create: if isVerified() && isValidId(docId) && docId == 'clock'
+        && isValidWorldClock(incoming())
+        && incoming().initializedBy == request.auth.uid
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update, delete: if false;
+    }
+
+    // 2. Online Artists (No PII)
+    match /onlineArtists/{uid} {
+      allow get: if isSignedIn() && isValidId(uid);
+      allow list: if isSignedIn() && resource.data.isPublic == true;
+      allow create: if isVerified() && isValidId(uid) && isOwner(uid)
+        && isValidOnlineArtist(incoming())
+        && incoming().uid == request.auth.uid
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isVerified() && isValidId(uid) && isOwner(uid)
+        && isValidOnlineArtist(incoming())
+        && incoming().uid == existing().uid
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'artistId', 'name', 'handle', 'avatar', 'headerImage', 'bio', 'country',
+          'careerMode', 'fandomName', 'isVerified', 'isGoldTheme', 'followers',
+          'monthlyListeners', 'totalStreams', 'youtubeSubscribers',
+          'instagramFollowers', 'tiktokFollowers', 'popularity', 'hype',
+          'netWorth', 'lastActiveAtMs', 'updatedAt'
+        ]);
+      allow delete: if isVerified() && isValidId(uid) && isOwner(uid);
+    }
+
+    // 3. Online Songs
+    match /onlineSongs/{songId} {
+      allow get: if isSignedIn() && isValidId(songId);
+      allow list: if isSignedIn() && resource.data.isPublic == true;
+      allow create: if isVerified() && isValidId(songId)
+        && isValidOnlineSong(incoming())
+        && incoming().id == songId
+        && incoming().ownerUid == request.auth.uid
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isVerified() && isValidId(songId)
+        && isValidOnlineSong(incoming())
+        && existing().ownerUid == request.auth.uid
+        && incoming().id == existing().id
+        && incoming().ownerUid == existing().ownerUid
+        && incoming().artistId == existing().artistId
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'artistName', 'artistAvatar', 'title', 'genre', 'coverArt', 'explicit',
+          'duration', 'releaseYear', 'releaseWeek', 'totalStreams', 'weeklyStreams',
+          'weeklySales', 'totalSales', 'radioImpressions', 'radioPlays',
+          'hot100Points', 'ukPoints', 'isAvailableOnStreaming', 'exclusiveTo',
+          'albumId', 'albumTitle', 'features', 'regionalStreams',
+          'lastUpdatedWeekKey', 'updatedAt'
+        ]);
+      allow delete: if isVerified() && isValidId(songId) && existing().ownerUid == request.auth.uid;
+    }
+
+    // 4. Online Releases
+    match /onlineReleases/{releaseId} {
+      allow get: if isSignedIn() && isValidId(releaseId);
+      allow list: if isSignedIn() && resource.data.isPublic == true;
+      allow create: if isVerified() && isValidId(releaseId)
+        && isValidOnlineRelease(incoming())
+        && incoming().id == releaseId
+        && incoming().ownerUid == request.auth.uid
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isVerified() && isValidId(releaseId)
+        && isValidOnlineRelease(incoming())
+        && incoming().id == existing().id
+        && incoming().ownerUid == existing().ownerUid
+        && incoming().artistId == existing().artistId
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && (
+          (existing().ownerUid == request.auth.uid && incoming().diff(existing()).affectedKeys().hasOnly([
+            'artistName', 'artistAvatar', 'title', 'type', 'coverArt', 'releaseYear',
+            'releaseWeek', 'isScheduled', 'preSaves', 'weeklyActivity',
+            'weeklyPureSales', 'weeklySES', 'totalSales', 'totalStreams',
+            'songIds', 'songTitles', 'labelName', 'lastUpdatedWeekKey', 'updatedAt'
+          ])) ||
+          (incoming().diff(existing()).affectedKeys().hasOnly(['preSaves', 'updatedAt'])
+            && incoming().preSaves == existing().preSaves + 1)
+        );
+      allow delete: if isVerified() && isValidId(releaseId) && existing().ownerUid == request.auth.uid;
+    }
+
+    // 5. Online Videos
+    match /onlineVideos/{videoId} {
+      allow get: if isSignedIn() && isValidId(videoId);
+      allow list: if isSignedIn() && resource.data.isPublic == true;
+      allow create: if isVerified() && isValidId(videoId)
+        && isValidOnlineVideo(incoming())
+        && incoming().id == videoId
+        && incoming().ownerUid == request.auth.uid
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isVerified() && isValidId(videoId)
+        && isValidOnlineVideo(incoming())
+        && incoming().id == existing().id
+        && incoming().ownerUid == existing().ownerUid
+        && incoming().artistId == existing().artistId
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && (
+          (existing().ownerUid == request.auth.uid && incoming().diff(existing()).affectedKeys().hasOnly([
+            'artistName', 'artistAvatar', 'title', 'type', 'thumbnail', 'description',
+            'views', 'weeklyViews', 'likes', 'spotifyViews', 'isOnSpotify', 'updatedAt'
+          ])) ||
+          (incoming().diff(existing()).affectedKeys().hasOnly(['views', 'likes', 'updatedAt'])
+            && incoming().views >= existing().views
+            && incoming().likes >= existing().likes)
+        );
+      allow delete: if isVerified() && isValidId(videoId) && existing().ownerUid == request.auth.uid;
+    }
+
+    // 6. Online X Posts & Reactions
+    match /onlineXPosts/{postId} {
+      allow get: if isSignedIn() && isValidId(postId);
+      allow list: if isSignedIn() && resource.data.isPublic == true;
+      allow create: if isVerified() && isValidId(postId)
+        && isValidOnlineXPost(incoming())
+        && incoming().id == postId
+        && incoming().ownerUid == request.auth.uid
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isVerified() && isValidId(postId)
+        && isValidOnlineXPost(incoming())
+        && incoming().id == existing().id
+        && incoming().ownerUid == existing().ownerUid
+        && incoming().authorId == existing().authorId
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && (
+          (existing().ownerUid == request.auth.uid && incoming().diff(existing()).affectedKeys().hasOnly([
+            'authorName', 'authorUsername', 'authorAvatar', 'authorVerified',
+            'authorGoldVerified', 'likes', 'retweets', 'views', 'updatedAt'
+          ])) ||
+          (incoming().diff(existing()).affectedKeys().hasOnly(['likes', 'retweets', 'views', 'updatedAt'])
+            && incoming().views >= existing().views)
+        );
+      allow delete: if isVerified() && isValidId(postId) && existing().ownerUid == request.auth.uid;
+
+      match /reactions/{reactorUid} {
+        allow get: if isSignedIn() && isValidId(postId) && isValidId(reactorUid);
+        allow list: if isSignedIn() && resource.data.uid == request.auth.uid;
+        allow create: if isVerified() && isValidId(postId) && isValidId(reactorUid) && isOwner(reactorUid)
+          && isValidOnlineXReaction(incoming())
+          && incoming().uid == request.auth.uid
+          && incoming().createdAt == request.time
+          && incoming().updatedAt == request.time
+          && exists(/databases/$(database)/documents/onlineXPosts/$(postId));
+        allow update: if isVerified() && isValidId(postId) && isValidId(reactorUid) && isOwner(reactorUid)
+          && isValidOnlineXReaction(incoming())
+          && incoming().uid == existing().uid
+          && incoming().createdAt == existing().createdAt
+          && incoming().updatedAt == request.time
+          && incoming().diff(existing()).affectedKeys().hasOnly(['liked', 'reposted', 'updatedAt']);
+        allow delete: if isVerified() && isValidId(postId) && isValidId(reactorUid) && isOwner(reactorUid);
+      }
+    }
+
+    // 7. Online Follows
+    match /onlineFollows/{followId} {
+      allow get: if isSignedIn() && isValidCompositeId(followId);
+      allow list: if isSignedIn() && resource.data.isPublic == true;
+      allow create: if isVerified() && isValidCompositeId(followId)
+        && isValidOnlineFollow(incoming())
+        && incoming().id == followId
+        && incoming().followerUid == request.auth.uid
+        && followId == (request.auth.uid + '_' + incoming().targetUid)
+        && incoming().createdAt == request.time;
+      allow update: if false;
+      allow delete: if isVerified() && isValidCompositeId(followId) && existing().followerUid == request.auth.uid;
+    }
+
+    // 8. Online Direct Messages (Participant-isolated)
+    match /onlineChats/{chatId} {
+      allow get: if isSignedIn() && isValidCompositeId(chatId) && request.auth.uid in existing().participantUids;
+      allow list: if isSignedIn() && request.auth.uid in resource.data.participantUids;
+      allow create: if isVerified() && isValidCompositeId(chatId)
+        && isValidOnlineChat(incoming())
+        && incoming().id == chatId
+        && request.auth.uid in incoming().participantUids
+        && incoming().lastSenderUid == request.auth.uid
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isVerified() && isValidCompositeId(chatId)
+        && isValidOnlineChat(incoming())
+        && request.auth.uid in existing().participantUids
+        && incoming().id == existing().id
+        && incoming().participantUids == existing().participantUids
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().lastSenderUid == request.auth.uid
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'lastMessageText', 'lastMessageAtMs', 'lastSenderUid',
+          'participantNames', 'participantHandles', 'participantAvatars', 'updatedAt'
+        ]);
+      allow delete: if false;
+
+      match /messages/{messageId} {
+        allow get: if isSignedIn() && isValidCompositeId(chatId) && isValidId(messageId)
+          && request.auth.uid in existing().participantUids;
+        allow list: if isSignedIn() && request.auth.uid in resource.data.participantUids;
+        allow create: if isVerified() && isValidCompositeId(chatId) && isValidId(messageId)
+          && isValidOnlineChatMessage(incoming())
+          && incoming().id == messageId
+          && incoming().chatId == chatId
+          && incoming().senderUid == request.auth.uid
+          && request.auth.uid in incoming().participantUids
+          && incoming().createdAt == request.time
+          && exists(/databases/$(database)/documents/onlineChats/$(chatId))
+          && incoming().participantUids == get(/databases/$(database)/documents/onlineChats/$(chatId)).data.participantUids;
+        allow update, delete: if false;
+      }
+    }
+
+    // 9. Private Cloud Saves (Owner-only)
+    match /saves/{userId} {
+      allow get: if isSignedIn() && isValidId(userId) && isOwner(userId);
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isVerified() && isValidId(userId) && isOwner(userId)
+        && isValidGameStateSave(incoming())
+        && incoming().userId == request.auth.uid;
+      allow update: if isVerified() && isValidId(userId) && isOwner(userId)
+        && isValidGameStateSave(incoming())
+        && incoming().userId == existing().userId
+        && incoming().diff(existing()).affectedKeys().hasOnly(['gameState', 'updatedAt']);
+      allow delete: if isVerified() && isValidId(userId) && isOwner(userId);
+    }
+
+    match /users/{userId}/saves/{saveId} {
+      allow get: if isSignedIn() && isValidId(userId) && isValidId(saveId) && isOwner(userId);
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isVerified() && isValidId(userId) && isValidId(saveId) && isOwner(userId)
+        && isValidGameStateSave(incoming())
+        && incoming().userId == request.auth.uid;
+      allow update: if isVerified() && isValidId(userId) && isValidId(saveId) && isOwner(userId)
+        && isValidGameStateSave(incoming())
+        && incoming().userId == existing().userId
+        && incoming().diff(existing()).affectedKeys().hasOnly(['gameState', 'updatedAt']);
+      allow delete: if isVerified() && isValidId(userId) && isValidId(saveId) && isOwner(userId);
+    }
+
+    // 10. Public Leaderboards
+    match /{leaderboardCollection}/{userId} {
+      allow get: if isSignedIn() && leaderboardCollection.matches('^leaderboards_.*') && isValidId(userId);
+      allow list: if isSignedIn() && leaderboardCollection.matches('^leaderboards_.*') && resource.data.score >= 0;
+      allow create: if isVerified() && leaderboardCollection.matches('^leaderboards_.*') && isValidId(userId) && isOwner(userId)
+        && isValidLeaderboardEntry(incoming())
+        && incoming().userId == request.auth.uid
+        && incoming().updatedAt == request.time;
+      allow update: if isVerified() && leaderboardCollection.matches('^leaderboards_.*') && isValidId(userId) && isOwner(userId)
+        && isValidLeaderboardEntry(incoming())
+        && incoming().userId == existing().userId
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly(['score', 'artistName', 'itemName', 'imageUrl', 'updatedAt']);
+      allow delete: if isVerified() && leaderboardCollection.matches('^leaderboards_.*') && isValidId(userId) && isOwner(userId);
+    }
+  }
+}

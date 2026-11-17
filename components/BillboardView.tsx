@@ -1,0 +1,604 @@
+import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { useGame, formatNumber } from '../context/GameContext';
+import { ChartEntry, GameDate } from '../types';
+import { getBillboardFormula, isSpotifyUnlockedForPlayer, getPlayerRegion } from '../utils/eraUtils';
+import { getArtistImage } from '../constants';
+import ArrowUpIcon from './icons/ArrowUpIcon';
+import ArrowDownIcon from './icons/ArrowDownIcon';
+import { getSpotifySongDetails } from '../utils/spotifyCredits';
+
+const MenuIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>;
+const SearchIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>;
+const CalendarIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>;
+const InfoIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>;
+const ShareIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" x2="12" y1="2" y2="15"/></svg>;
+const StarIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="black" stroke="black" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>;
+const PlusIcon = ({ expanded }: { expanded: boolean }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform duration-300 ${expanded ? 'rotate-45' : ''}`}>
+        <circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/>
+    </svg>
+);
+const RightArrowIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-500"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>;
+
+
+const ChartEntryItem: React.FC<{ entry: any, isAlbumChart?: boolean, isSpotify?: boolean }> = ({ entry, isAlbumChart, isSpotify }) => {
+    const { rank, lastWeek, peak, weeksOnChart, title, artist, coverArt } = entry;
+    const isPlayerItem = isAlbumChart ? entry.isPlayerAlbum : entry.isPlayerSong;
+    const [expanded, setExpanded] = useState(false);
+    const { gameState } = useGame();
+
+    const spotifyDetails = useMemo(() => {
+        if (!isSpotify) return null;
+        return getSpotifySongDetails(entry, gameState, false);
+    }, [entry, gameState, isSpotify]);
+
+    const userAlbumDigitalSales = useMemo(() => {
+        if (!isAlbumChart || !entry.isPlayerAlbum) return 0;
+        
+        let ds = 0;
+        if (typeof entry.digitalSales === 'number' && entry.digitalSales > 0) {
+            ds = Math.max(ds, entry.digitalSales);
+        }
+        if (typeof entry.itunesSales === 'number' && entry.itunesSales > 0) {
+            ds = Math.max(ds, entry.itunesSales);
+        }
+        if (typeof (entry as any).weeklyDigitalSales === 'number' && (entry as any).weeklyDigitalSales > 0) {
+            ds = Math.max(ds, (entry as any).weeklyDigitalSales);
+        }
+
+        // Look up release in player artist data
+        for (const artistId in gameState.artistsData) {
+            const aData = gameState.artistsData[artistId];
+            const rel = aData.releases?.find(r => r.id === (entry.albumId || entry.uniqueId) || r.title === entry.title);
+            if (rel) {
+                const rWeeklyDig = (rel as any).weeklyDigitalSales || (rel as any).weeklyItunesSales || 0;
+                if (rWeeklyDig > 0) ds = Math.max(ds, rWeeklyDig);
+
+                if (rel.songIds && rel.songIds.length > 0) {
+                    let trackDownloads = 0;
+                    rel.songIds.forEach(sid => {
+                        const s = aData.songs?.find(song => song.id === sid);
+                        if (s) {
+                            const situnes = (s as any).itunesSalesWeek || (s as any).itunesSales || (s as any).lastWeekSales || 0;
+                            trackDownloads += situnes;
+                        }
+                    });
+                    if (trackDownloads > 0) {
+                        ds = Math.max(ds, Math.floor(trackDownloads / 10));
+                    }
+                }
+                break;
+            }
+        }
+
+        const isItunesLaunched = gameState.date.year > 2003 || (gameState.date.year === 2003 && gameState.date.week >= 17);
+        if (ds === 0 && (isItunesLaunched || gameState.date.year >= 2003)) {
+            const base = (entry.weeklyPureSales || entry.weeklySales || entry.weeklyActivity || 10000);
+            const itunesWeight = gameState.date.year <= 2012 ? 0.35 : gameState.date.year <= 2018 ? 0.25 : 0.15;
+            ds = Math.max(150, Math.floor(base * itunesWeight * 0.2));
+        }
+
+        return Math.floor(ds);
+    }, [entry, isAlbumChart, gameState]);
+
+    const displayedPureSales = useMemo(() => {
+        if (!isAlbumChart) return 0;
+        return entry.weeklyPureSales !== undefined ? entry.weeklyPureSales : (entry.weeklySales || 0);
+    }, [entry, isAlbumChart]);
+
+    const displayedSES = useMemo(() => {
+        if (!isAlbumChart) return 0;
+        return Math.max(0, Math.floor(entry.weeklySES || 0));
+    }, [entry, isAlbumChart]);
+
+    const displayedTotalSPS = useMemo(() => {
+        if (!isAlbumChart) return 0;
+        if (!entry.isPlayerAlbum) {
+            return entry.weeklyActivity || 0;
+        }
+        // FOR USER ONLY: Total SPS strictly includes and totals digital sales!
+        const base = Math.max(entry.weeklyActivity || 0, displayedPureSales + displayedSES);
+        return Math.max(base, displayedPureSales + displayedSES + userAlbumDigitalSales);
+    }, [entry, isAlbumChart, displayedPureSales, displayedSES, userAlbumDigitalSales]);
+
+    const weeklyStreams = isAlbumChart 
+        ? (entry.isPlayerAlbum ? displayedTotalSPS : (entry.weeklyActivity || 0)) 
+        : (entry.weeklyStreams || 0);
+    
+    const renderMovement = () => {
+        const isNewEntry = lastWeek === null && weeksOnChart === 1;
+
+        if (isNewEntry) {
+            return (
+                <div className="bg-[#12FF80] text-black text-[10px] font-black px-1 py-0.5 rounded-sm tracking-wider mt-1 w-full text-center">
+                    NEW
+                </div>
+            );
+        }
+
+        if (lastWeek === null) {
+            return <div className="mt-1"><RightArrowIcon /></div>;
+        }
+        if (rank < lastWeek) {
+            return <div className="mt-1"><ArrowUpIcon className="w-5 h-5 text-black" /></div>;
+        }
+        if (rank > lastWeek) {
+            return <div className="mt-1"><ArrowDownIcon className="w-5 h-5 text-black" /></div>;
+        }
+        return <div className="mt-1"><RightArrowIcon /></div>;
+    };
+
+    let boost = 1;
+    if (entry.isPlayerSong && entry.songId) {
+        for (const artistId in gameState.artistsData) {
+            const aData = gameState.artistsData[artistId];
+            const song = aData.songs.find(s => s.id === entry.songId);
+            if (song) {
+                const pushWeek = aData.lastPushToItunesWeek;
+                const currentWeek = gameState.date.year * 52 + gameState.date.week;
+                if (aData.lastPushedSongId === entry.songId && pushWeek && currentWeek - pushWeek <= 1) {
+                    boost = 5 + Math.random() * 5;
+                }
+                break;
+            }
+        }
+    }
+    const hash = (entry.uniqueId || entry.albumId || '').split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    const divisor = 750 + (hash % 250);
+    const digitalSales = isAlbumChart 
+        ? (entry.weeklyPureSales || entry.weeklySales || 0) 
+        : (entry.digitalSales !== undefined ? entry.digitalSales : (weeklyStreams > 0 ? Math.floor(weeklyStreams / divisor) * boost : 0));
+
+    return (
+        <div className="w-full relative bg-[#f4f4f4] mb-2 shadow-sm rounded-sm overflow-hidden flex flex-col transition-all">
+            <div 
+                className={`w-full flex items-center p-3 gap-3 bg-white cursor-pointer relative z-10`}
+                onClick={() => setExpanded(!expanded)}
+            >
+                <div className="w-12 flex flex-col items-center justify-center flex-shrink-0">
+                    <span className="text-2xl font-black">{rank}</span>
+                    {renderMovement()}
+                </div>
+                
+                <img 
+                    src={getArtistImage(artist, coverArt, isPlayerItem)} 
+                    alt={title} 
+                    onError={(e) => {
+                        const fallback = coverArt || getArtistImage(artist, undefined, isPlayerItem);
+                        if (e.currentTarget.src !== fallback) {
+                            e.currentTarget.src = fallback;
+                        }
+                    }}
+                    className="w-[84px] h-[84px] object-cover bg-zinc-200 border border-zinc-100 flex-shrink-0" 
+                />
+                
+                <div className="flex-grow flex flex-col justify-center min-w-0 pr-2">
+                    <h3 className={`text-xl font-black mt-1 leading-tight truncate ${isPlayerItem ? 'text-red-600' : 'text-black'}`}>{title}</h3>
+                    <p className="text-[15px] text-zinc-800 truncate mb-1">{artist}</p>
+                    
+                    <div className="flex items-center text-[10px] text-zinc-500 font-semibold tracking-wider gap-3">
+                        <span>LW <span className="text-zinc-800">{lastWeek ?? '-'}</span></span>
+                        <span>PEAK <span className="text-zinc-800">{peak}</span></span>
+                        <span>WEEKS <span className="text-zinc-800">{weeksOnChart}</span></span>
+                    </div>
+                </div>
+
+                <div className="flex flex-col h-full gap-4 items-center justify-between flex-shrink-0">
+                    <button className="text-zinc-400 hover:text-black mt-1 p-1">
+                        <PlusIcon expanded={expanded} />
+                    </button>
+                    {isPlayerItem && (
+                        <div className="mb-1"><StarIcon /></div>
+                    )}
+                </div>
+            </div>
+
+            <div className={`overflow-hidden transition-all duration-300 ease-in-out bg-[#f4f4f4] ${expanded ? 'max-h-96 opacity-100 py-3' : 'max-h-0 opacity-0'}`}>
+                {isSpotify && spotifyDetails ? (
+                    <div className="bg-white p-4 mx-2 rounded border border-zinc-200 text-xs">
+                        <div className="grid grid-cols-[110px_1fr] sm:grid-cols-[150px_1fr] gap-y-3 gap-x-3 text-zinc-800">
+                            <div className="font-bold text-black">Producers</div>
+                            <div>{spotifyDetails.producers.length > 0 ? spotifyDetails.producers.join(', ') : '—'}</div>
+                            
+                            <div className="font-bold text-black">Songwriters</div>
+                            <div className="leading-relaxed">
+                                {spotifyDetails.songwriters.length > 0 ? (
+                                    spotifyDetails.songwriters.map((writer, i) => (
+                                        <span key={i}>
+                                            <span className="underline decoration-zinc-400 hover:text-black cursor-pointer">
+                                                {writer}
+                                            </span>
+                                            {i < spotifyDetails.songwriters.length - 1 ? ', ' : ''}
+                                        </span>
+                                    ))
+                                ) : '—'}
+                            </div>
+
+                            <div className="font-bold text-black">Source</div>
+                            <div className="font-bold text-zinc-900">{spotifyDetails.source}</div>
+
+                            <div className="font-bold text-black">Peak</div>
+                            <div>{spotifyDetails.peak}</div>
+
+                            <div className="font-bold text-black">Prev Week</div>
+                            <div>{spotifyDetails.lastRank ?? '—'}</div>
+
+                            <div className="font-bold text-black">Streak</div>
+                            <div>{spotifyDetails.streak}</div>
+
+                            <div className="font-bold text-black">Streams</div>
+                            <div className="font-medium">{spotifyDetails.streams.toLocaleString()}</div>
+
+                            <div className="font-bold text-black">Release Date</div>
+                            <div>{spotifyDetails.releaseDate}</div>
+
+                            <div className="font-bold text-black">First entry date</div>
+                            <div>{spotifyDetails.firstEntryDate}</div>
+                        </div>
+                    </div>
+                ) : isAlbumChart ? (
+                    <div className="flex px-4 items-center justify-around">
+                        <div className="text-center">
+                            <p className="text-[10px] font-bold text-zinc-400 tracking-wider">PURE SALES</p>
+                            <p className="text-lg font-black text-black">
+                                {formatNumber(Math.floor(displayedPureSales))}
+                            </p>
+                        </div>
+                        {gameState.date.year >= 2016 && (
+                            <>
+                                <div className="w-px h-8 bg-zinc-300"></div>
+                                <div className="text-center">
+                                    <p className="text-[10px] font-bold text-zinc-400 tracking-wider">STREAMING EQUIVALENT (SES)</p>
+                                    <p className="text-lg font-black text-black">{formatNumber(displayedSES)}</p>
+                                </div>
+                            </>
+                        )}
+                        <div className="w-px h-8 bg-zinc-300"></div>
+                        <div className="text-center">
+                            <p className="text-[10px] font-bold text-zinc-400 tracking-wider">TOTAL SPS</p>
+                            <p className="text-lg font-black text-black">
+                                {formatNumber(Math.floor(displayedTotalSPS))}
+                            </p>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="flex px-4 items-center justify-around">
+                        <div className="text-center">
+                            <p className="text-[10px] font-bold text-zinc-400 tracking-wider">SALES</p>
+                            <p className="text-lg font-black text-black">{digitalSales > 0 ? formatNumber(Math.floor(digitalSales)) : '0'}</p>
+                        </div>
+                        <div className="w-px h-8 bg-zinc-300"></div>
+                        <div className="text-center">
+                            <p className="text-[10px] font-bold text-zinc-400 tracking-wider">AIRPLAY</p>
+                            <p className="text-lg font-black text-black">
+                                {entry.radioImpressions && entry.radioImpressions > 0 
+                                    ? formatNumber(Math.floor(entry.radioImpressions)) 
+                                    : (entry.radioPlays && entry.radioPlays > 0 ? formatNumber(Math.floor(entry.radioPlays * 5000)) : '0')}
+                            </p>
+                        </div>
+                        {gameState.date.year >= 2010 && (
+                            <>
+                                <div className="w-px h-8 bg-zinc-300"></div>
+                                <div className="text-center">
+                                    <p className="text-[10px] font-bold text-zinc-400 tracking-wider">STREAMS</p>
+                                    <p className="text-lg font-black text-black">{formatNumber(weeklyStreams || 0)}</p>
+                                </div>
+                            </>
+                        )}
+                        {entry.points !== undefined && entry.points > 0 && (() => {
+                            const formattedPoints = entry.points > 10000 ? Math.round(entry.points * 0.00001) : Math.round(entry.points);
+                            return (
+                                <>
+                                    <div className="w-px h-8 bg-zinc-300"></div>
+                                    <div className="text-center">
+                                        <p className="text-[10px] font-bold text-zinc-400 tracking-wider">CHART POINTS</p>
+                                        <p className="text-lg font-black text-emerald-600">{formatNumber(formattedPoints)}</p>
+                                    </div>
+                                </>
+                            );
+                        })()}
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
+type SubChart = 'hot100' | 'bubblingUnder' | 'topAlbums' | 'hotPop' | 'hotRap' | 'electronic' | 'country' | 'spotify';
+
+const BillboardView: React.FC = () => {
+    const { gameState, dispatch } = useGame();
+    const { billboardHot100, billboardBubblingUnder25, billboardTopAlbums, hotPopSongs, hotRapRnb, electronicChart, countryChart, spotifyGlobal = [], date } = gameState;
+    const activeArtistData = gameState.artistsData[gameState.activeArtistId || ''];
+    const playerRegion = getPlayerRegion(activeArtistData, gameState.soloArtist, gameState.group);
+    const spotifyUnlocked = isSpotifyUnlockedForPlayer(playerRegion, date.year);
+
+    const [selectedChart, setSelectedChart] = useState<SubChart>('hot100');
+    const [showSelector, setShowSelector] = useState(false);
+
+    const getWeekDate = (d: GameDate) => {
+        const dateObj = new Date(d.year, 0, (d.week - 1) * 7 + 1);
+        const month = dateObj.toLocaleString('en-US', { month: 'long' });
+        const day = dateObj.getDate();
+        return `${month} ${day}, ${d.year}`;
+    }
+
+    const chartsData: Record<string, { title: string, data: ChartEntry[], isAlbum?: boolean }> = {
+        hot100: { title: 'BILLBOARD HOT 100™', data: billboardHot100 },
+        bubblingUnder: { title: 'BUBBLING UNDER HOT 100™', data: billboardBubblingUnder25 || [] },
+        topAlbums: { title: 'BILLBOARD 200™', data: billboardTopAlbums as any, isAlbum: true },
+        hotPop: { title: 'HOT POP SONGS™', data: hotPopSongs },
+        hotRap: { title: 'HOT RAP & R&B SONGS™', data: hotRapRnb },
+        electronic: { title: 'HOT DANCE/ELECTRONIC SONGS™', data: electronicChart },
+        country: { title: 'HOT COUNTRY SONGS™', data: countryChart },
+        ...(spotifyUnlocked ? { spotify: { title: 'SPOTIFY GLOBAL 50', data: spotifyGlobal } } : {}),
+    };
+
+    const currentChart = chartsData[selectedChart] || chartsData.hot100;
+    const [showFormulaModal, setShowFormulaModal] = useState(false);
+    const currentFormula = getBillboardFormula(date.year);
+
+    const allDecades = [
+        getBillboardFormula(1995),
+        getBillboardFormula(2005),
+        getBillboardFormula(2015),
+        getBillboardFormula(2023)
+    ];
+
+    // Identify user's charted song/album with the highest position (lowest rank number)
+    const highestPlayerEntry = useMemo(() => {
+        const isAlbum = currentChart.isAlbum;
+        const playerEntries = (currentChart.data || []).filter(entry => 
+            isAlbum ? (entry as any).isPlayerAlbum : (entry as any).isPlayerSong
+        );
+        if (playerEntries.length === 0) return null;
+        return [...playerEntries].sort((a, b) => a.rank - b.rank)[0];
+    }, [currentChart]);
+
+    const highestPlayerItemRef = useRef<HTMLDivElement>(null);
+
+    // Auto-scroll directly to player's highest charting song
+    useEffect(() => {
+        if (highestPlayerEntry && highestPlayerItemRef.current) {
+            const timer = setTimeout(() => {
+                highestPlayerItemRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 250);
+            return () => clearTimeout(timer);
+        }
+    }, [highestPlayerEntry?.uniqueId, selectedChart]);
+
+    return (
+        <div className="bg-[#e4e4e4] h-full font-sans relative pb-24 text-black overflow-y-auto">
+            <header className="bg-white">
+                <div className="flex items-center justify-between p-4 border-b-4 border-black relative">
+                    <button 
+                        onClick={() => {
+                            dispatch({type: 'CHANGE_TAB', payload: 'Charts'});
+                            dispatch({type: 'CHANGE_VIEW', payload: 'game'});
+                        }}
+                        className="text-black p-1 hover:bg-zinc-100 rounded flex gap-1 items-center font-bold text-xs"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                        BACK
+                    </button>
+                    <h1 className="text-4xl font-extrabold tracking-tighter absolute left-1/2 -translate-x-1/2" style={{ fontFamily: 'Impact, sans-serif' }}>
+                        billboard
+                    </h1>
+                    <button className="text-black p-1 hover:bg-zinc-100 rounded">
+                        <SearchIcon />
+                    </button>
+                </div>
+                <div className="bg-black w-full py-2 px-4 flex justify-between items-center relative">
+                    <button 
+                        onClick={() => setShowFormulaModal(true)}
+                        className="text-[#12FF80] uppercase font-bold text-xs border border-[#12FF80] px-3 py-1 tracking-wider hover:bg-[#12FF80]/10"
+                    >
+                        VIEW RULES
+                    </button>
+                    <button 
+                        onClick={() => setShowSelector(!showSelector)}
+                        className="text-[#12FF80] uppercase font-bold text-xs border border-[#12FF80] px-3 py-1 tracking-wider hover:bg-[#12FF80]/10"
+                    >
+                        ALL CHARTS
+                    </button>
+                    
+                    {showSelector && (
+                        <div className="absolute top-10 right-4 bg-white shadow-2xl border border-zinc-200 z-50 flex flex-col min-w-[240px]">
+                            {Object.entries(chartsData).map(([key, info]) => (
+                                <button 
+                                    key={key} 
+                                    onClick={() => { setSelectedChart(key as SubChart); setShowSelector(false); }}
+                                    className={`px-4 py-3 text-left border-b border-zinc-100 uppercase tracking-widest text-xs font-bold hover:bg-zinc-50 ${selectedChart === key ? 'text-[#12FF80] bg-black hover:bg-black' : 'text-black'}`}
+                                >
+                                    {info.title.replace('™', '')}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+                </div>
+                <div className="bg-[#fcfcfc] w-full text-center py-6 border-b border-zinc-200 shadow-sm relative overflow-hidden">
+                    <h2 className="text-[32px] sm:text-5xl font-black tracking-tighter text-black" style={{ fontFamily: 'Impact, sans-serif'}}>{currentChart.title}</h2>
+                    <p className="text-xs font-bold tracking-widest text-black mt-2">WEEK OF {getWeekDate(date).toUpperCase()}</p>
+                </div>
+                <div className="bg-[#12FF80] w-full py-2 flex justify-center gap-12 border-b border-black">
+                    <button className="hover:scale-110 transition-transform"><CalendarIcon /></button>
+                    <button className="hover:scale-110 transition-transform" onClick={() => setShowFormulaModal(true)} title="Billboard Hot 100 Formula"><InfoIcon /></button>
+                    <button className="hover:scale-110 transition-transform"><ShareIcon /></button>
+                </div>
+            </header>
+            
+            <main className="mx-auto max-w-3xl pt-2 px-2 relative z-0">
+                {currentChart.data.length > 0 ? (
+                    currentChart.data.map(entry => {
+                        const isHighestPlayer = entry.uniqueId === highestPlayerEntry?.uniqueId;
+                        return (
+                            <div 
+                                key={entry.uniqueId}
+                                ref={isHighestPlayer ? highestPlayerItemRef : undefined}
+                                className={isHighestPlayer ? "scroll-mt-36 ring-2 ring-[#12FF80] shadow-[0_0_15px_rgba(18,255,128,0.4)] rounded-sm mb-2" : ""}
+                            >
+                                <ChartEntryItem entry={entry} isAlbumChart={currentChart.isAlbum} isSpotify={selectedChart === 'spotify'} />
+                            </div>
+                        );
+                    })
+                ) : (
+                    <div className="text-center py-20 text-zinc-500 bg-white rounded-md mt-4 shadow-sm border border-gray-200">
+                        <p className="font-bold text-black text-xl">Chart is empty</p>
+                        <p className="text-sm mt-2 font-medium">Release music and wait for the week to pass.</p>
+                    </div>
+                )}
+            </main>
+
+            {showFormulaModal && (
+                <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-zinc-200 flex flex-col">
+                        <div className="p-5 border-b border-zinc-200 flex items-center justify-between bg-zinc-950 text-white rounded-t-2xl">
+                            <div>
+                                <h3 className="text-xl font-black tracking-tight flex items-center gap-2">
+                                    <span className="text-[#12FF80]">BILLBOARD HOT 100</span> FORMULAS
+                                </h3>
+                                <p className="text-xs text-zinc-400 font-medium mt-0.5">
+                                    How song chart points are calculated across eras
+                                </p>
+                            </div>
+                            <button 
+                                onClick={() => setShowFormulaModal(false)}
+                                className="w-8 h-8 rounded-full bg-zinc-800 text-zinc-300 hover:text-white flex items-center justify-center font-bold text-sm hover:bg-zinc-700 transition-colors"
+                            >
+                                ✕
+                            </button>
+                        </div>
+
+                        <div className="p-6 space-y-5 text-left">
+                            <div className="p-3 bg-zinc-100 rounded-xl border border-zinc-200 text-xs text-zinc-700">
+                                <span className="font-bold text-black">Current Year ({date.year}): </span>
+                                Ranked under <strong>{currentFormula.decade} ({currentFormula.eraTitle})</strong> rules.
+                            </div>
+
+                            <div className="space-y-4">
+                                {allDecades.map(dec => {
+                                    const isCurrent = dec.decade === currentFormula.decade;
+                                    return (
+                                        <div 
+                                            key={dec.decade}
+                                            className={`p-4 rounded-xl border transition-all ${
+                                                isCurrent 
+                                                    ? 'bg-emerald-50/70 border-emerald-500 shadow-sm ring-2 ring-emerald-500/20' 
+                                                    : 'bg-white border-zinc-200 opacity-90'
+                                            }`}
+                                        >
+                                            <div className="flex items-center justify-between mb-2">
+                                                <div className="flex items-center gap-2">
+                                                    <span className={`px-2 py-0.5 rounded font-black text-xs uppercase tracking-wider ${
+                                                        isCurrent ? 'bg-black text-[#12FF80]' : 'bg-zinc-200 text-zinc-800'
+                                                    }`}>
+                                                        {dec.decade}
+                                                    </span>
+                                                    <span className="font-bold text-sm text-black">{dec.eraTitle}</span>
+                                                    <span className="text-xs text-zinc-500">({dec.yearsSpan})</span>
+                                                </div>
+                                                {isCurrent && (
+                                                    <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-600 text-white">
+                                                        Active Era
+                                                    </span>
+                                                )}
+                                            </div>
+
+                                            {/* Formula bar breakdown */}
+                                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-3 mb-2.5">
+                                                <div className="bg-zinc-50 p-2 rounded-lg border border-zinc-200 text-center">
+                                                    <div className="text-[10px] uppercase font-bold text-zinc-500">Radio Airplay</div>
+                                                    <div className="text-base font-black text-cyan-600">{Math.round(dec.radio * 100)}%</div>
+                                                </div>
+                                                <div className="bg-zinc-50 p-2 rounded-lg border border-zinc-200 text-center">
+                                                    <div className="text-[10px] uppercase font-bold text-zinc-500">Streaming</div>
+                                                    <div className="text-base font-black text-emerald-600">{Math.round(dec.streaming * 100)}%</div>
+                                                </div>
+                                                <div className="bg-zinc-50 p-2 rounded-lg border border-zinc-200 text-center">
+                                                    <div className="text-[10px] uppercase font-bold text-zinc-500">Digital Sales</div>
+                                                    <div className="text-base font-black text-yellow-600">{Math.round(dec.digital * 100)}%</div>
+                                                </div>
+                                                <div className="bg-zinc-50 p-2 rounded-lg border border-zinc-200 text-center">
+                                                    <div className="text-[10px] uppercase font-bold text-zinc-500">Physical Sales</div>
+                                                    <div className="text-base font-black text-purple-600">{Math.round(dec.physical * 100)}%</div>
+                                                </div>
+                                            </div>
+
+                                            <p className="text-xs text-zinc-600 mt-2 font-medium leading-relaxed">
+                                                {dec.description}
+                                            </p>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+
+                            <div className="bg-zinc-50 p-3 rounded-lg border border-zinc-200 text-[11px] text-zinc-500 leading-relaxed">
+                                Note: Billboard added streaming to the Hot 100 formula in 2010. Radio plays are converted to all-format impressions.
+                            </div>
+
+                            {/* Additional Official Billboard Rules */}
+                            <div className="space-y-3 pt-2">
+                                <h4 className="font-extrabold text-sm uppercase tracking-wider text-black flex items-center gap-1.5">
+                                    <span className="w-2 h-2 rounded-full bg-[#12FF80]"></span>
+                                    Official Billboard Chart Rules
+                                </h4>
+
+                                <div className="p-3.5 bg-zinc-50 rounded-xl border border-zinc-200 space-y-2 text-xs">
+                                    <p className="font-bold text-black flex items-center gap-1">
+                                        ⏱️ Recurrent Rules (Drop-off & Ineligibility)
+                                    </p>
+                                    <ul className="list-disc pl-5 space-y-1 text-zinc-600">
+                                        <li><strong>20-Week Rule:</strong> A song that has charted for 20+ weeks and falls below <strong>#50</strong> is automatically removed to recurrent status.</li>
+                                        <li><strong>52-Week Rule:</strong> A song that has charted for 52+ weeks and falls below <strong>#25</strong> is automatically removed to recurrent status.</li>
+                                        <li>Recurrent songs are disqualified from the Hot 100 to allow new releases to chart, unless they gain sufficient new points to re-enter above the threshold.</li>
+                                    </ul>
+                                </div>
+
+                                <div className="p-3.5 bg-zinc-50 rounded-xl border border-zinc-200 space-y-2 text-xs">
+                                    <p className="font-bold text-black flex items-center gap-1">
+                                        🫧 Bubbling Under Hot 100 Rules
+                                    </p>
+                                    <ul className="list-disc pl-5 space-y-1 text-zinc-600">
+                                        <li>Ranks the top 25 songs below the Hot 100 based on the official Billboard points formula.</li>
+                                        <li>Songs that have already charted on the main Hot 100 or were disqualified by recurrent rules cannot appear on Bubbling Under.</li>
+                                    </ul>
+                                </div>
+
+                                <div className="p-3.5 bg-zinc-50 rounded-xl border border-zinc-200 space-y-2 text-xs">
+                                    <p className="font-bold text-black flex items-center gap-1">
+                                        💿 Billboard 200 (Album Units) Rules
+                                    </p>
+                                    <ul className="list-disc pl-5 space-y-1 text-zinc-600">
+                                        <li><strong>1 Album Unit (SPS)</strong> = 1 Pure Album Sale = 1,500 on-demand streams (SEA) = 10 digital track sales (TEA).</li>
+                                        <li>Physical copies (Vinyl, CDs, Cassettes) and store pre-orders are counted upon the album's debut week.</li>
+                                    </ul>
+                                </div>
+
+                                <div className="p-3.5 bg-zinc-50 rounded-xl border border-zinc-200 space-y-2 text-xs">
+                                    <p className="font-bold text-black flex items-center gap-1">
+                                        📻 Genre Charts (Pop, Rap/R&B, Dance/Electronic, Country)
+                                    </p>
+                                    <ul className="list-disc pl-5 space-y-1 text-zinc-600">
+                                        <li>Follow the same decade weighting formulas (Streaming, Radio airplay, Digital and Physical sales) filtered by genre.</li>
+                                        <li>Subject to recurrent rules (50 positions) to keep genre charts fresh and competitive.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="p-4 border-t border-zinc-200 bg-zinc-50 rounded-b-2xl flex justify-end">
+                            <button 
+                                onClick={() => setShowFormulaModal(false)}
+                                className="px-5 py-2 rounded-lg bg-black text-white font-bold text-xs hover:bg-zinc-800 transition-colors"
+                            >
+                                Got it
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+export default BillboardView;

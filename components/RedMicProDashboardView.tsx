@@ -1,0 +1,738 @@
+
+import React, { useState, useEffect, useMemo } from 'react';
+import { useGame, formatNumber } from '../context/GameContext';
+import { useOnline } from '../context/OnlineContext';
+import { Song } from '../types';
+import { LABELS } from '../constants';
+import ArrowLeftIcon from './icons/ArrowLeftIcon';
+import { CustomAwardShowBuilder } from './CustomAwardShowBuilder';
+import { RedMicProCodeModal } from './RedMicProCodeModal';
+
+const QualityEditor: React.FC<{ song: Song }> = ({ song }) => {
+    const { dispatch } = useGame();
+    const [quality, setQuality] = useState(song.quality);
+    const [trait, setTrait] = useState<string>(song.trait || 'Normal');
+
+    React.useEffect(() => {
+        setQuality(song.quality);
+        setTrait(song.trait || 'Normal');
+    }, [song.quality, song.trait]);
+
+    const handleUpdate = () => {
+        dispatch({ type: 'UPDATE_SONG_QUALITY', payload: { songId: song.id, newQuality: quality } });
+        dispatch({ type: 'UPDATE_SONG_TRAIT', payload: { songId: song.id, newTrait: trait } });
+    };
+
+    return (
+        <div className="flex items-center gap-3">
+            <div className="flex-grow">
+                <p className="font-semibold">{song.title}</p>
+            </div>
+            <select
+                value={trait}
+                onChange={e => {
+                    setTrait(e.target.value);
+                }}
+                className="w-32 bg-zinc-700 p-1 rounded-md text-xs"
+            >
+                <option value="Normal">Normal</option>
+                <option value="Smash Hit">Smash Hit</option>
+                <option value="TikTok Hit">TikTok Hit</option>
+                <option value="Slow Burner">Slow Burner</option>
+                <option value="Radio Hit">Radio Hit</option>
+                <option value="Flop">Flop</option>
+            </select>
+            <input 
+                type="number" 
+                value={quality || ''} 
+                onChange={e => setQuality(parseInt(e.target.value) || 0)}
+                min="0" max="100"
+                className="w-16 bg-zinc-700 p-1 rounded-md text-center"
+            />
+            <button 
+                onClick={handleUpdate} 
+                className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-1 px-3 rounded text-xs"
+            >
+                Confirm
+            </button>
+        </div>
+    );
+};
+
+
+
+
+const CustomFeatureBuilder: React.FC = () => {
+    const { gameState, dispatch } = useGame();
+    const [name, setName] = useState('');
+    const [cost, setCost] = useState('');
+
+    const handleAdd = () => {
+        if (!name.trim()) return;
+        dispatch({ type: 'ADD_CUSTOM_FEATURE', payload: { name: name.trim(), cost: parseInt(cost) || 0 } });
+        setName('');
+        setCost('');
+    };
+
+    const handleRemove = (featureName: string) => {
+        dispatch({ type: 'REMOVE_CUSTOM_FEATURE', payload: { name: featureName } });
+    };
+
+    return (
+        <div className="bg-zinc-800 p-4 rounded-lg space-y-3">
+            <h2 className="text-lg font-bold">Custom Feature Artists</h2>
+            <p className="text-sm text-zinc-400">Add custom artists to appear in your Studio collaboration list. You can set them as free ($0) or priced.</p>
+            
+            <div className="flex gap-2">
+                <input 
+                    type="text" 
+                    value={name} 
+                    onChange={e => setName(e.target.value)} 
+                    placeholder="Artist Name"
+                    className="flex-grow bg-zinc-700 p-2 rounded-md text-white"
+                />
+                <input 
+                    type="number" 
+                    value={cost} 
+                    onChange={e => setCost(e.target.value)} 
+                    placeholder="Cost ($)"
+                    className="w-24 bg-zinc-700 p-2 rounded-md text-white"
+                />
+                <button 
+                    onClick={handleAdd} 
+                    className="bg-red-600 hover:bg-red-500 text-white font-bold py-2 px-4 rounded-md"
+                >
+                    Add
+                </button>
+            </div>
+
+            {gameState.customFeatures && gameState.customFeatures.length > 0 && (
+                <div className="mt-4 space-y-2">
+                    {gameState.customFeatures.map(f => (
+                        <div key={f.name} className="flex items-center justify-between bg-zinc-700/50 p-2 rounded-md">
+                            <div>
+                                <p className="font-bold">{f.name}</p>
+                                <p className="text-xs text-green-400">${(f.cost || 0).toLocaleString()}</p>
+                            </div>
+                            <button 
+                                onClick={() => handleRemove(f.name)}
+                                className="text-red-400 hover:text-red-300 text-sm font-bold"
+                            >
+                                Remove
+                            </button>
+                        </div>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+};
+
+const OnlineFeatureRequestSender: React.FC = () => {
+    const { gameState, dispatch, activeArtistData, activeArtist } = useGame();
+    const { onlineArtists } = useOnline();
+    const [selectedArtist, setSelectedArtist] = useState<string>('');
+    const [searchTerm, setSearchTerm] = useState<string>('');
+    const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+    const playerArtistName = activeArtistData?.profile?.name || activeArtist?.name || '';
+
+    const allCollaborators = useMemo(() => {
+        const customNames = (gameState.customFeatures || []).map((f: any) => f.name);
+        const onlineNames = onlineArtists.map(a => a.name);
+        const merged = new Set([...onlineNames, ...customNames]);
+
+        return Array.from(merged)
+            .filter((name): name is string => typeof name === 'string' && name.trim().length > 0 && name !== playerArtistName)
+            .sort((a, b) => a.localeCompare(b));
+    }, [gameState.customFeatures, onlineArtists, playerArtistName]);
+
+    const isCustom = (name: string) => {
+        return (gameState.customFeatures || []).some((f: any) => f.name.toLowerCase() === name.toLowerCase());
+    };
+
+    const handleSendRequest = () => {
+        if (!selectedArtist) return;
+
+        dispatch({
+            type: 'SEND_NPC_FEATURE_REQUEST',
+            payload: { npcArtistName: selectedArtist }
+        });
+
+        setSuccessMessage(`Feature offer created from "${selectedArtist}" in your Inbox.`);
+    };
+
+    const filteredArtists = searchTerm
+        ? allCollaborators.filter(a => a.toLowerCase().includes(searchTerm.toLowerCase()))
+        : allCollaborators;
+
+    const matchedOnline = onlineArtists.find(a => a.name === selectedArtist);
+    const artistImage = selectedArtist
+        ? matchedOnline?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedArtist)}&background=random&color=fff&size=250`
+        : null;
+
+    return (
+        <div className="bg-zinc-800 p-4 rounded-lg space-y-4 border border-zinc-700">
+            <div className="flex items-center gap-2">
+                <span className="text-xl">🎤</span>
+                <div>
+                    <h2 className="text-lg font-bold text-white">Send Feature Request to Online Artist</h2>
+                    <p className="text-xs text-zinc-400">Select an active online artist or custom Pro collaborator to receive a feature offer email in your Inbox.</p>
+                </div>
+            </div>
+
+            {successMessage && (
+                <div className="bg-emerald-900/40 border border-emerald-500/50 p-3 rounded-lg text-sm text-emerald-200 flex items-center justify-between gap-3 animate-in fade-in duration-200">
+                    <div className="flex items-center gap-2">
+                        <span>✉️</span>
+                        <span>{successMessage}</span>
+                    </div>
+                    <button
+                        onClick={() => dispatch({ type: 'CHANGE_VIEW', payload: 'inbox' })}
+                        className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-1 rounded text-xs transition-colors shrink-0"
+                    >
+                        Go to Inbox
+                    </button>
+                </div>
+            )}
+
+            <div className="space-y-3">
+                <div>
+                    <label className="text-xs font-semibold text-zinc-300 block mb-1">Search & Filter Artist</label>
+                    <input
+                        type="text"
+                        placeholder="Type to search artist..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full bg-zinc-700 p-2 rounded-md text-sm text-white placeholder-zinc-400 border border-zinc-600 focus:outline-none focus:border-yellow-400"
+                    />
+                </div>
+
+                <div>
+                    <label className="text-xs font-semibold text-zinc-300 block mb-1">Select Artist ({filteredArtists.length} available)</label>
+                    <select
+                        value={selectedArtist}
+                        onChange={(e) => {
+                            setSelectedArtist(e.target.value);
+                            setSuccessMessage(null);
+                        }}
+                        className="w-full bg-zinc-700 p-2 rounded-md text-sm text-white border border-zinc-600 focus:outline-none focus:border-yellow-400"
+                    >
+                        <option value="">-- Choose an Online Artist --</option>
+                        {filteredArtists.map(artist => (
+                            <option key={artist} value={artist}>
+                                {artist} {isCustom(artist) ? '★ (Custom Pro Feature)' : '• Online'}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+
+                {selectedArtist && (
+                    <div className="flex items-center justify-between bg-zinc-900/60 p-3 rounded-lg border border-zinc-700/60 mt-2">
+                        <div className="flex items-center gap-3">
+                            {artistImage && (
+                                <img
+                                    src={artistImage}
+                                    alt={selectedArtist}
+                                    className="w-12 h-12 rounded-full object-cover border border-zinc-600 shadow-md"
+                                />
+                            )}
+                            <div>
+                                <p className="font-bold text-white text-sm">{selectedArtist}</p>
+                                <p className="text-xs text-zinc-400">
+                                    {isCustom(selectedArtist) ? (
+                                        <span className="text-amber-400 font-medium">Custom Pro Artist</span>
+                                    ) : (
+                                        <span className="text-emerald-400 font-medium">Online Player Artist</span>
+                                    )}
+                                </p>
+                            </div>
+                        </div>
+
+                        <button
+                            onClick={handleSendRequest}
+                            className="bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-400 hover:to-amber-500 text-black font-black px-4 py-2 rounded-lg text-xs transition-all shadow-md flex items-center gap-1.5 active:scale-95"
+                        >
+                            <span>📨</span>
+                            <span>Send Feature Request</span>
+                        </button>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
+const RedMicProDashboardView: React.FC = () => {
+    const { dispatch, activeArtistData, gameState } = useGame();
+    if (!activeArtistData) return null;
+    
+    const { money, songs, isGoldTheme, salesBoost, contract, hype, redMicPro, popularity, tiktokFollowers, instagramFollowers, youtubeSubscribers } = activeArtistData;
+
+    const [newMoney, setNewMoney] = useState(money);
+    const [newBoost, setNewBoost] = useState(salesBoost);
+    const [newHype, setNewHype] = useState(hype);
+    const [newPopularity, setNewPopularity] = useState(popularity);
+    const [newTikTokFollowers, setNewTikTokFollowers] = useState(tiktokFollowers || 0);
+    const [newInstagramFollowers, setNewInstagramFollowers] = useState(instagramFollowers || 0);
+    const [newYouTubeSubscribers, setNewYouTubeSubscribers] = useState(youtubeSubscribers || 0);
+    const [adminCode, setAdminCode] = useState('');
+    const [isAdminUnlocked, setIsAdminUnlocked] = useState(false);
+    const [showCodeModal, setShowCodeModal] = useState(false);
+    const hypeMode = redMicPro.hypeMode || 'locked';
+
+    useEffect(() => {
+        setNewTikTokFollowers(tiktokFollowers || 0);
+        setNewInstagramFollowers(instagramFollowers || 0);
+        setNewYouTubeSubscribers(youtubeSubscribers || 0);
+    }, [tiktokFollowers, instagramFollowers, youtubeSubscribers]);
+
+    const unreleasedSongs = songs.filter(s => !s.isReleased);
+
+    const handleAdminUnlock = () => {
+        if (adminCode.toLowerCase() === 'queenlayabtch') {
+            setIsAdminUnlocked(true);
+        }
+    };
+
+    return (
+        <div className="h-full w-full bg-zinc-900 overflow-y-auto">
+            <header className="p-4 flex items-center justify-between sticky top-0 bg-zinc-900/90 backdrop-blur-md z-10 border-b border-zinc-700/60">
+                <div className="flex items-center gap-3">
+                    <button onClick={() => dispatch({type: 'CHANGE_VIEW', payload: 'game'})} className="p-2 rounded-full hover:bg-white/10 transition-colors">
+                        <ArrowLeftIcon className="w-6 h-6" />
+                    </button>
+                    <div>
+                        <div className="flex items-center gap-2">
+                            <h1 className="text-xl sm:text-2xl font-black text-yellow-400">Red Mic Pro Dashboard</h1>
+                            <span className="text-[10px] bg-red-600/30 text-red-400 border border-red-500/50 px-2 py-0.5 rounded-full font-black uppercase tracking-wider">
+                                Discontinued
+                            </span>
+                        </div>
+                        <p className="text-xs text-zinc-400">Legacy Member Control Center</p>
+                    </div>
+                </div>
+                <button
+                    onClick={() => setShowCodeModal(true)}
+                    className="bg-zinc-800 hover:bg-zinc-700 border border-zinc-600/80 text-zinc-200 hover:text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 shadow-sm"
+                >
+                    <svg className="w-3.5 h-3.5 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                    </svg>
+                    <span>Enter Code</span>
+                </button>
+            </header>
+
+            <main className="p-4 space-y-6">
+                {/* Red Announcement Banner */}
+                <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-red-950 via-red-900/80 to-zinc-900 border-2 border-red-500/80 shadow-2xl text-white">
+                    <div className="flex items-start gap-3.5">
+                        <div className="w-10 h-10 rounded-xl bg-red-600/30 border border-red-500/60 flex items-center justify-center shrink-0 mt-0.5">
+                            <svg className="w-5 h-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                                <h2 className="text-base sm:text-lg font-black text-red-400 tracking-wide uppercase">
+                                    Red Mic Pro Discontinued For New Members
+                                </h2>
+                                <span className="text-[10px] bg-red-600 text-white font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
+                                    Notice
+                                </span>
+                            </div>
+                            <p className="text-sm text-zinc-100 mt-1.5 font-medium leading-relaxed">
+                                Red Mic Pro is now discontinued for new members, old members may still be able to use their code if their subscription is still active.
+                            </p>
+                            <div className="mt-3.5 flex items-center gap-3">
+                                <button
+                                    onClick={() => setShowCodeModal(true)}
+                                    className="text-xs bg-red-600 hover:bg-red-500 text-white font-bold px-4 py-2 rounded-xl transition-all shadow-md flex items-center gap-1.5 hover:scale-[1.02] active:scale-[0.98]"
+                                >
+                                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                                    </svg>
+                                    <span>Enter / Verify Pro Code</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="bg-zinc-800/90 border border-zinc-700/80 p-4 sm:p-5 rounded-2xl flex items-center justify-between gap-4">
+                    <div>
+                        <div className="flex items-center gap-2">
+                            <h2 className="text-lg font-bold text-white">Active Pro Member</h2>
+                            <span className="text-xs bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 px-2 py-0.5 rounded-full font-bold">
+                                Legacy Active
+                            </span>
+                        </div>
+                        <p className="text-sm text-zinc-300 mt-1">
+                            {hypeMode === 'locked' ? 'Hype is permanently locked at 1000.' : 'Manual hype control is active.'}
+                        </p>
+                        <p className="text-xs text-zinc-400 mt-1">
+                            Existing active subscriber benefits remain active.
+                        </p>
+                    </div>
+                    <button
+                        onClick={() => setShowCodeModal(true)}
+                        className="bg-zinc-700 hover:bg-zinc-600 text-zinc-200 text-xs font-bold px-3.5 py-2 rounded-xl transition-colors shrink-0"
+                    >
+                        Re-enter Code
+                    </button>
+                </div>
+
+                <div className="bg-zinc-800 p-4 rounded-lg space-y-3">
+                    <h2 className="text-lg font-bold">Hype Management</h2>
+                    <div className="grid grid-cols-2 gap-2">
+                        <button
+                            onClick={() => dispatch({ type: 'SET_PRO_HYPE_MODE', payload: 'locked' })}
+                            className={`py-2 rounded-md font-semibold text-sm transition-colors ${hypeMode === 'locked' ? 'bg-yellow-500 text-black' : 'bg-zinc-700'}`}
+                        >
+                            Locked Hype (1000)
+                        </button>
+                        <button
+                            onClick={() => dispatch({ type: 'SET_PRO_HYPE_MODE', payload: 'manual' })}
+                            className={`py-2 rounded-md font-semibold text-sm transition-colors ${hypeMode === 'manual' ? 'bg-yellow-500 text-black' : 'bg-zinc-700'}`}
+                        >
+                            Manual Hype
+                        </button>
+                    </div>
+                    {hypeMode === 'manual' && (
+                        <div className="space-y-1">
+                            <div className="flex gap-2">
+                                <input
+                                    type="number"
+                                    value={newHype ?? ''}
+                                    onChange={e => {
+                                        const val = parseInt(e.target.value);
+                                        setNewHype(isNaN(val) ? 0 : Math.max(0, Math.min(100, val)));
+                                    }}
+                                    min="0"
+                                    max="100"
+                                    placeholder="0 - 100"
+                                    className="w-full bg-zinc-700 p-2 rounded-md"
+                                />
+                                <button
+                                    onClick={() => dispatch({ type: 'SET_HYPE', payload: Math.max(0, Math.min(100, newHype)) })}
+                                    className="bg-zinc-600 font-bold px-4 rounded-md"
+                                >
+                                    Set
+                                </button>
+                            </div>
+                            <p className="text-xs text-zinc-400">Manual hype is capped at 100.</p>
+                        </div>
+                    )}
+                </div>
+                
+                <div className="bg-zinc-800 p-4 rounded-lg space-y-3">
+                    <h2 className="text-lg font-bold">Public Image Management</h2>
+                    <p className="text-sm text-zinc-400">Change your public image level instantly. Lower values cause controversy and backlash.</p>
+                    <div className="flex gap-2">
+                        <input
+                            type="range"
+                            min="0"
+                            max="100"
+                            value={activeArtistData.publicImage ?? 80}
+                            onChange={(e) => dispatch({ type: 'SET_PUBLIC_IMAGE', payload: parseInt(e.target.value) })}
+                            className="w-full"
+                        />
+                        <span className="w-12 text-right font-bold">{activeArtistData.publicImage ?? 80}</span>
+                    </div>
+                </div>
+
+                <div className="bg-zinc-800 p-4 rounded-lg space-y-3">
+                    <h2 className="text-lg font-bold">Theme</h2>
+                    <div className="flex items-center justify-between">
+                        <label htmlFor="gold-theme-toggle" className="font-semibold">Enable Gold Theme</label>
+                        <button 
+                            onClick={() => dispatch({ type: 'TOGGLE_GOLD_THEME', payload: { enabled: !isGoldTheme } })}
+                            className={`w-14 h-8 rounded-full p-1 transition-colors ${isGoldTheme ? 'bg-yellow-500' : 'bg-zinc-600'}`}
+                            id="gold-theme-toggle"
+                        >
+                            <span className={`block w-6 h-6 rounded-full bg-white transform transition-transform ${isGoldTheme ? 'translate-x-6' : ''}`} />
+                        </button>
+                    </div>
+                </div>
+
+                <div className="bg-zinc-800 p-4 rounded-lg space-y-3">
+                    <h2 className="text-lg font-bold">Edit Money</h2>
+                    <div className="flex gap-2">
+                        <input type="number" value={newMoney || ''} onChange={e => setNewMoney(parseInt(e.target.value) || 0)} className="w-full bg-zinc-700 p-2 rounded-md" />
+                        <button onClick={() => dispatch({ type: 'SET_MONEY', payload: { newAmount: newMoney }})} className="bg-zinc-600 font-bold px-4 rounded-md">Set</button>
+                    </div>
+                </div>
+
+                <div className="bg-zinc-800 p-4 rounded-lg space-y-4">
+                    <h2 className="text-lg font-bold">Edit Social Followers & Subscribers</h2>
+                    
+                    <div className="space-y-2">
+                        <label className="text-sm font-semibold text-zinc-300 flex items-center gap-2">
+                            <span>TikTok Followers</span>
+                            <span className="text-xs text-zinc-500">({formatNumber(tiktokFollowers || 0)})</span>
+                        </label>
+                        <div className="flex gap-2">
+                            <input 
+                                type="number" 
+                                value={newTikTokFollowers || ''} 
+                                onChange={e => setNewTikTokFollowers(parseInt(e.target.value) || 0)} 
+                                min="0" 
+                                className="w-full bg-zinc-700 p-2 rounded-md" 
+                            />
+                            <button 
+                                onClick={() => dispatch({ type: 'SET_TIKTOK_FOLLOWERS', payload: { newAmount: newTikTokFollowers }})} 
+                                className="bg-zinc-600 hover:bg-zinc-500 font-bold px-4 rounded-md text-sm"
+                            >
+                                Set
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="space-y-2 pt-2 border-t border-zinc-700/50">
+                        <label className="text-sm font-semibold text-zinc-300 flex items-center gap-2">
+                            <span>Instagram Followers</span>
+                            <span className="text-xs text-zinc-500">({formatNumber(instagramFollowers || 0)})</span>
+                        </label>
+                        <div className="flex gap-2">
+                            <input 
+                                type="number" 
+                                value={newInstagramFollowers || ''} 
+                                onChange={e => setNewInstagramFollowers(parseInt(e.target.value) || 0)} 
+                                min="0" 
+                                className="w-full bg-zinc-700 p-2 rounded-md" 
+                            />
+                            <button 
+                                onClick={() => dispatch({ type: 'SET_INSTAGRAM_FOLLOWERS', payload: { newAmount: newInstagramFollowers }})} 
+                                className="bg-zinc-600 hover:bg-zinc-500 font-bold px-4 rounded-md text-sm"
+                            >
+                                Set
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="space-y-2 pt-2 border-t border-zinc-700/50">
+                        <label className="text-sm font-semibold text-zinc-300 flex items-center gap-2">
+                            <span>YouTube Subscribers</span>
+                            <span className="text-xs text-zinc-500">({formatNumber(youtubeSubscribers || 0)})</span>
+                        </label>
+                        <div className="flex gap-2">
+                            <input 
+                                type="number" 
+                                value={newYouTubeSubscribers || ''} 
+                                onChange={e => setNewYouTubeSubscribers(parseInt(e.target.value) || 0)} 
+                                min="0" 
+                                className="w-full bg-zinc-700 p-2 rounded-md" 
+                            />
+                            <button 
+                                onClick={() => dispatch({ type: 'SET_YOUTUBE_SUBSCRIBERS', payload: { newAmount: newYouTubeSubscribers }})} 
+                                className="bg-zinc-600 hover:bg-zinc-500 font-bold px-4 rounded-md text-sm"
+                            >
+                                Set
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="bg-zinc-800 p-4 rounded-lg space-y-3">
+                    <h2 className="text-lg font-bold">Edit Popularity (1-100)</h2>
+                    <div className="flex gap-2">
+                        <input 
+                            type="number" 
+                            value={newPopularity || ''} 
+                            onChange={e => setNewPopularity(parseInt(e.target.value) || 0)} 
+                            min="1" 
+                            max="100" 
+                            className="w-full bg-zinc-700 p-2 rounded-md" 
+                        />
+                        <button onClick={() => dispatch({ type: 'SET_POPULARITY', payload: newPopularity })} className="bg-zinc-600 font-bold px-4 rounded-md">Set</button>
+                    </div>
+                    
+                    <div className="mt-4 pt-4 border-t border-zinc-700 space-y-3">
+                        <h3 className="text-md font-bold text-zinc-300">Edit Regional Popularity</h3>
+                        {(['US', 'Canada', 'UK', 'Latin America', 'Asia', 'Africa'] as const).map(region => (
+                            <div key={region} className="flex justify-between items-center gap-2">
+                                <span className="w-24 text-sm text-zinc-400">{region}</span>
+                                <input 
+                                    type="number" 
+                                    value={activeArtistData?.regionalPopularity?.[region] ?? newPopularity ?? 0}
+                                    onChange={(e) => dispatch({ type: 'SET_REGIONAL_POPULARITY', payload: { region, popularity: parseInt(e.target.value) || 0 }})}
+                                    min="1" 
+                                    max="100" 
+                                    className="w-20 bg-zinc-700 p-1 text-sm rounded-md text-center" 
+                                />
+                            </div>
+                        ))}
+                    </div>
+                </div>
+                
+                <div className="bg-zinc-800 p-4 rounded-lg space-y-3">
+                    <h2 className="text-lg font-bold">Edit Merch Sales Boost (%)</h2>
+                    <div className="flex gap-2">
+                        <input type="number" value={newBoost || ''} onChange={e => setNewBoost(parseInt(e.target.value) || 0)} className="w-full bg-zinc-700 p-2 rounded-md" />
+                        <button onClick={() => dispatch({ type: 'SET_SALES_BOOST', payload: { newBoost: newBoost }})} className="bg-zinc-600 font-bold px-4 rounded-md">Set</button>
+                    </div>
+                </div>
+
+                <div className="bg-zinc-800 p-4 rounded-lg space-y-3">
+                    <h2 className="text-lg font-bold">Career Stage & Lock</h2>
+                    <div className="flex gap-2 mb-2">
+                        <button 
+                            onClick={() => dispatch({ type: 'SET_CAREER_STAGE', payload: { stage: 'smash', artistId: activeArtistId }})} 
+                            className={`flex-1 font-bold px-4 py-2 rounded-md transition-all ${activeArtistData.careerStage === 'smash' ? 'bg-green-600 text-white ring-2 ring-green-400' : 'bg-zinc-700 hover:bg-zinc-600 text-zinc-200'}`}
+                        >
+                            Smash Era
+                        </button>
+                        <button 
+                            onClick={() => dispatch({ type: 'SET_CAREER_STAGE', payload: { stage: 'neutral', artistId: activeArtistId }})} 
+                            className={`flex-1 font-bold px-4 py-2 rounded-md transition-all ${(!activeArtistData.careerStage || activeArtistData.careerStage === 'neutral') ? 'bg-zinc-500 text-white ring-2 ring-zinc-400' : 'bg-zinc-700 hover:bg-zinc-600 text-zinc-200'}`}
+                        >
+                            Neutral Era
+                        </button>
+                        <button 
+                            onClick={() => dispatch({ type: 'SET_CAREER_STAGE', payload: { stage: 'flop', artistId: activeArtistId }})} 
+                            className={`flex-1 font-bold px-4 py-2 rounded-md transition-all ${activeArtistData.careerStage === 'flop' ? 'bg-red-600 text-white ring-2 ring-red-400' : 'bg-zinc-700 hover:bg-zinc-600 text-zinc-200'}`}
+                        >
+                            Flop Era
+                        </button>
+                    </div>
+                    <div className="flex items-center justify-between bg-zinc-700/50 p-3 rounded-lg border border-zinc-600">
+                        <div>
+                            <p className="font-bold">Flop Era Lock</p>
+                            <p className="text-xs text-zinc-400">Prevent ever entering a flop era.</p>
+                        </div>
+                        <button
+                            onClick={() => dispatch({ type: 'TOGGLE_FLOP_ERA_LOCK', payload: { artistId: activeArtistId } })}
+                            className={`w-14 h-8 rounded-full p-1 transition-colors ${activeArtistData.flopEraLock ? 'bg-red-500' : 'bg-zinc-600'}`}
+                        >
+                            <span className={`block w-6 h-6 rounded-full bg-white transform transition-transform ${activeArtistData.flopEraLock ? 'translate-x-6' : ''}`} />
+                        </button>
+                    </div>
+                    <div className="flex items-center justify-between bg-zinc-700/50 p-3 rounded-lg border border-zinc-600 mt-2">
+                        <div>
+                            <p className="font-bold">Stuck on Era (Era Lock)</p>
+                            <p className="text-xs text-zinc-400">Freeze your current era so it never changes automatically during weekly progression.</p>
+                        </div>
+                        <button
+                            onClick={() => dispatch({ type: 'TOGGLE_ERA_LOCK', payload: { artistId: activeArtistId } })}
+                            className={`w-14 h-8 rounded-full p-1 transition-colors ${activeArtistData.eraLock || activeArtistData.stuckOnEra ? 'bg-amber-500' : 'bg-zinc-600'}`}
+                        >
+                            <span className={`block w-6 h-6 rounded-full bg-white transform transition-transform ${activeArtistData.eraLock || activeArtistData.stuckOnEra ? 'translate-x-6' : ''}`} />
+                        </button>
+                    </div>
+                </div>
+
+                <div className="bg-zinc-800 p-4 rounded-lg space-y-3">
+                    <h2 className="text-lg font-bold text-red-400">Contract Shredder</h2>
+                    <p className="text-sm text-zinc-400">Instantly get out of your current label contract without paying breach penalties.</p>
+                    <button
+                        onClick={() => {
+                            dispatch({ type: 'SHRED_CONTRACT' });
+                        }}
+                        disabled={!activeArtistData.contract}
+                        className={`w-full py-3 font-bold rounded-md ${activeArtistData.contract ? 'bg-red-600 hover:bg-red-500' : 'bg-zinc-700 text-zinc-500 cursor-not-allowed'}`}
+                    >
+                        {activeArtistData.contract ? 'SHRED CONTRACT' : 'NO ACTIVE CONTRACT'}
+                    </button>
+                </div>
+
+                <div className="bg-zinc-800 p-4 rounded-lg space-y-3">
+                    <h2 className="text-lg font-bold">Pitchfork Score Editor</h2>
+                    <p className="text-sm text-zinc-400">Edit the Pitchfork review score for your releases.</p>
+                    <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
+                        {activeArtistData.releases.filter(r => r.review).map(release => (
+                            <div key={release.id} className="flex items-center justify-between bg-zinc-700 p-2 rounded-md">
+                                <span className="font-semibold truncate w-1/2">{release.title}</span>
+                                <div className="flex items-center gap-2">
+                                    <input 
+                                        type="number" 
+                                        step="0.1" 
+                                        min="0" 
+                                        max="10"
+                                        defaultValue={release.review?.score || 0}
+                                        onBlur={(e) => {
+                                            const val = parseFloat(e.target.value);
+                                            if (!isNaN(val)) {
+                                                dispatch({ type: 'UPDATE_RELEASE_REVIEW_SCORE', payload: { releaseId: release.id, score: val }});
+                                            }
+                                        }}
+                                        className="w-16 bg-zinc-800 p-1 rounded text-center font-mono"
+                                    />
+                                    <span className="text-zinc-400 text-xs">/ 10</span>
+                                </div>
+                            </div>
+                        ))}
+                        {activeArtistData.releases.filter(r => r.review).length === 0 && (
+                            <p className="text-sm text-zinc-500">No reviewed releases yet.</p>
+                        )}
+                    </div>
+                </div>
+
+
+
+                <div className="bg-zinc-800 p-4 rounded-lg space-y-3">
+                    <h2 className="text-lg font-bold">Edit Unreleased Song Quality</h2>
+                    {unreleasedSongs.length > 0 ? unreleasedSongs.map(song => (
+                        <QualityEditor key={song.id} song={song} />
+                    )) : <p className="text-sm text-zinc-500">No unreleased songs to edit.</p>}
+                </div>
+
+                <div className="bg-zinc-800 p-4 rounded-lg space-y-3">
+                    <h2 className="text-lg font-bold">Sign With Any Label</h2>
+                    <p className="text-sm text-zinc-400">Instantly sign a 3-year, 3-album deal with any label, regardless of requirements.</p>
+                    <div className="grid grid-cols-2 gap-3 mt-2">
+                        {LABELS.map(label => (
+                            <button 
+                                key={label.id}
+                                onClick={() => dispatch({ type: 'PRO_SIGN_LABEL', payload: { labelId: label.id }})}
+                                className="bg-zinc-700 p-3 rounded-md hover:bg-zinc-600 disabled:opacity-50 flex flex-col items-center justify-center text-center"
+                                disabled={contract?.labelId === label.id && !contract.isCustom}
+                            >
+                                <div className="w-12 h-12 rounded-lg bg-white border border-zinc-200 p-1.5 flex items-center justify-center mb-1 shadow-sm">
+                                    <img src={label.logo} className="max-w-full max-h-full object-contain" alt={label.name} />
+                                </div>
+                                <p className="font-bold mt-1 text-xs">{label.name}</p>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                <OnlineFeatureRequestSender />
+
+                <CustomFeatureBuilder />
+
+                <CustomAwardShowBuilder />
+
+                <div className="bg-zinc-900/50 border-2 border-purple-500/30 p-4 rounded-lg space-y-3">
+                    <h2 className="text-lg font-bold text-purple-400">Admin Panel</h2>
+                    {isAdminUnlocked ? (
+                        <div className="text-center py-4">
+                            <p className="text-zinc-300">Admin features coming soon.</p>
+                        </div>
+                    ) : (
+                        <div className="flex gap-2">
+                            <input 
+                                type="password" 
+                                value={adminCode} 
+                                onChange={e => setAdminCode(e.target.value)} 
+                                placeholder="Enter secret code..."
+                                className="w-full bg-zinc-700 p-2 rounded-md"
+                            />
+                            <button 
+                                onClick={handleAdminUnlock} 
+                                className="bg-purple-600 hover:bg-purple-700 font-bold px-4 rounded-md"
+                            >
+                                Unlock
+                            </button>
+                        </div>
+                    )}
+                </div>
+            </main>
+
+            <RedMicProCodeModal 
+                isOpen={showCodeModal} 
+                onClose={() => setShowCodeModal(false)} 
+            />
+        </div>
+    );
+};
+export default RedMicProDashboardView;

@@ -1,0 +1,326 @@
+{
+  "entities": {
+    "WorldClock": {
+      "title": "WorldClock",
+      "description": "Shared real-time global 2018 world clock where 15 minutes real-time equals 1 game week.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 32 },
+        "epochStartMs": { "type": "number" },
+        "weekDurationMs": { "type": "number" },
+        "startYear": { "type": "number" },
+        "startWeek": { "type": "number" },
+        "initializedBy": { "type": "string", "maxLength": 128 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "epochStartMs", "weekDurationMs", "startYear", "startWeek", "initializedBy", "createdAt", "updatedAt"]
+    },
+    "OnlineArtist": {
+      "title": "OnlineArtist",
+      "description": "Public online artist or group profile without any PII.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "maxLength": 128 },
+        "artistId": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 120 },
+        "handle": { "type": "string", "maxLength": 64 },
+        "avatar": { "type": "string", "maxLength": 350000 },
+        "headerImage": { "type": "string", "maxLength": 350000 },
+        "bio": { "type": "string", "maxLength": 500 },
+        "country": { "type": "string", "maxLength": 64 },
+        "careerMode": { "type": "string", "enum": ["solo", "group"] },
+        "fandomName": { "type": "string", "maxLength": 100 },
+        "isVerified": { "type": "boolean" },
+        "isGoldTheme": { "type": "boolean" },
+        "followers": { "type": "number" },
+        "monthlyListeners": { "type": "number" },
+        "totalStreams": { "type": "number" },
+        "youtubeSubscribers": { "type": "number" },
+        "instagramFollowers": { "type": "number" },
+        "tiktokFollowers": { "type": "number" },
+        "popularity": { "type": "number" },
+        "hype": { "type": "number" },
+        "netWorth": { "type": "number" },
+        "isPublic": { "type": "boolean" },
+        "lastActiveAtMs": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "artistId", "name", "handle", "avatar", "country", "careerMode", "fandomName", "followers", "monthlyListeners", "totalStreams", "youtubeSubscribers", "popularity", "hype", "isPublic", "lastActiveAtMs", "createdAt", "updatedAt"]
+    },
+    "OnlineSong": {
+      "title": "OnlineSong",
+      "description": "Real online player released song competing on global charts.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "ownerUid": { "type": "string", "maxLength": 128 },
+        "artistId": { "type": "string", "maxLength": 128 },
+        "artistName": { "type": "string", "maxLength": 120 },
+        "artistAvatar": { "type": "string", "maxLength": 350000 },
+        "title": { "type": "string", "maxLength": 200 },
+        "genre": { "type": "string", "maxLength": 80 },
+        "coverArt": { "type": "string", "maxLength": 350000 },
+        "explicit": { "type": "boolean" },
+        "duration": { "type": "number" },
+        "releaseYear": { "type": "number" },
+        "releaseWeek": { "type": "number" },
+        "totalStreams": { "type": "number" },
+        "weeklyStreams": { "type": "number" },
+        "weeklySales": { "type": "number" },
+        "totalSales": { "type": "number" },
+        "radioImpressions": { "type": "number" },
+        "radioPlays": { "type": "number" },
+        "hot100Points": { "type": "number" },
+        "ukPoints": { "type": "number" },
+        "isAvailableOnStreaming": { "type": "boolean" },
+        "exclusiveTo": { "type": "string", "maxLength": 40 },
+        "albumId": { "type": "string", "maxLength": 128 },
+        "albumTitle": { "type": "string", "maxLength": 200 },
+        "features": { "type": "array" },
+        "regionalStreams": { "type": "object" },
+        "lastUpdatedWeekKey": { "type": "number" },
+        "isPublic": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "ownerUid", "artistId", "artistName", "artistAvatar", "title", "genre", "coverArt", "releaseYear", "releaseWeek", "totalStreams", "weeklyStreams", "weeklySales", "totalSales", "hot100Points", "ukPoints", "isPublic", "createdAt", "updatedAt"]
+    },
+    "OnlineRelease": {
+      "title": "OnlineRelease",
+      "description": "Real online player album, EP, single, or mixtape release.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "ownerUid": { "type": "string", "maxLength": 128 },
+        "artistId": { "type": "string", "maxLength": 128 },
+        "artistName": { "type": "string", "maxLength": 120 },
+        "artistAvatar": { "type": "string", "maxLength": 350000 },
+        "title": { "type": "string", "maxLength": 200 },
+        "type": { "type": "string", "maxLength": 40 },
+        "coverArt": { "type": "string", "maxLength": 350000 },
+        "releaseYear": { "type": "number" },
+        "releaseWeek": { "type": "number" },
+        "isScheduled": { "type": "boolean" },
+        "preSaves": { "type": "number" },
+        "weeklyActivity": { "type": "number" },
+        "weeklyPureSales": { "type": "number" },
+        "weeklySES": { "type": "number" },
+        "totalSales": { "type": "number" },
+        "totalStreams": { "type": "number" },
+        "songIds": { "type": "array" },
+        "songTitles": { "type": "array" },
+        "labelName": { "type": "string", "maxLength": 120 },
+        "lastUpdatedWeekKey": { "type": "number" },
+        "isPublic": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "ownerUid", "artistId", "artistName", "artistAvatar", "title", "type", "coverArt", "releaseYear", "releaseWeek", "isScheduled", "preSaves", "weeklyActivity", "totalSales", "totalStreams", "isPublic", "createdAt", "updatedAt"]
+    },
+    "OnlineVideo": {
+      "title": "OnlineVideo",
+      "description": "Real online player YouTube and Spotify music video.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "ownerUid": { "type": "string", "maxLength": 128 },
+        "artistId": { "type": "string", "maxLength": 128 },
+        "artistName": { "type": "string", "maxLength": 120 },
+        "artistAvatar": { "type": "string", "maxLength": 350000 },
+        "songId": { "type": "string", "maxLength": 128 },
+        "songTitle": { "type": "string", "maxLength": 200 },
+        "title": { "type": "string", "maxLength": 200 },
+        "type": { "type": "string", "maxLength": 60 },
+        "thumbnail": { "type": "string", "maxLength": 350000 },
+        "description": { "type": "string", "maxLength": 1000 },
+        "views": { "type": "number" },
+        "weeklyViews": { "type": "number" },
+        "likes": { "type": "number" },
+        "spotifyViews": { "type": "number" },
+        "isOnSpotify": { "type": "boolean" },
+        "releaseYear": { "type": "number" },
+        "releaseWeek": { "type": "number" },
+        "createdAtMs": { "type": "number" },
+        "isPublic": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "ownerUid", "artistId", "artistName", "artistAvatar", "title", "type", "thumbnail", "views", "weeklyViews", "likes", "releaseYear", "releaseWeek", "createdAtMs", "isPublic", "createdAt", "updatedAt"]
+    },
+    "OnlineXPost": {
+      "title": "OnlineXPost",
+      "description": "Real online player post on X timeline.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "ownerUid": { "type": "string", "maxLength": 128 },
+        "authorId": { "type": "string", "maxLength": 128 },
+        "authorName": { "type": "string", "maxLength": 120 },
+        "authorUsername": { "type": "string", "maxLength": 64 },
+        "authorAvatar": { "type": "string", "maxLength": 350000 },
+        "authorVerified": { "type": "boolean" },
+        "authorGoldVerified": { "type": "boolean" },
+        "content": { "type": "string", "maxLength": 1000 },
+        "image": { "type": "string", "maxLength": 350000 },
+        "likes": { "type": "number" },
+        "retweets": { "type": "number" },
+        "views": { "type": "number" },
+        "replyToId": { "type": "string", "maxLength": 128 },
+        "quoteOfId": { "type": "string", "maxLength": 128 },
+        "quoteAuthorName": { "type": "string", "maxLength": 120 },
+        "quoteAuthorUsername": { "type": "string", "maxLength": 64 },
+        "quoteContent": { "type": "string", "maxLength": 500 },
+        "gameYear": { "type": "number" },
+        "gameWeek": { "type": "number" },
+        "createdAtMs": { "type": "number" },
+        "isPublic": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "ownerUid", "authorId", "authorName", "authorUsername", "authorAvatar", "content", "likes", "retweets", "views", "gameYear", "gameWeek", "createdAtMs", "isPublic", "createdAt", "updatedAt"]
+    },
+    "OnlineXReaction": {
+      "title": "OnlineXReaction",
+      "description": "Per-user like and repost state on an X post.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "maxLength": 128 },
+        "liked": { "type": "boolean" },
+        "reposted": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "liked", "reposted", "createdAt", "updatedAt"]
+    },
+    "OnlineFollow": {
+      "title": "OnlineFollow",
+      "description": "Follow edge between two real online artists.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 260 },
+        "followerUid": { "type": "string", "maxLength": 128 },
+        "targetUid": { "type": "string", "maxLength": 128 },
+        "isPublic": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "followerUid", "targetUid", "isPublic", "createdAt"]
+    },
+    "OnlineChat": {
+      "title": "OnlineChat",
+      "description": "Direct message thread between two real online players.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 260 },
+        "participantUids": { "type": "array" },
+        "participantNames": { "type": "object" },
+        "participantHandles": { "type": "object" },
+        "participantAvatars": { "type": "object" },
+        "lastMessageText": { "type": "string", "maxLength": 1000 },
+        "lastMessageAtMs": { "type": "number" },
+        "lastSenderUid": { "type": "string", "maxLength": 128 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "participantUids", "participantNames", "participantHandles", "participantAvatars", "lastMessageText", "lastMessageAtMs", "lastSenderUid", "createdAt", "updatedAt"]
+    },
+    "OnlineChatMessage": {
+      "title": "OnlineChatMessage",
+      "description": "Message inside a direct message thread between two real online players.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "chatId": { "type": "string", "maxLength": 260 },
+        "senderUid": { "type": "string", "maxLength": 128 },
+        "senderName": { "type": "string", "maxLength": 120 },
+        "senderAvatar": { "type": "string", "maxLength": 350000 },
+        "text": { "type": "string", "maxLength": 2000 },
+        "gameYear": { "type": "number" },
+        "gameWeek": { "type": "number" },
+        "createdAtMs": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "chatId", "senderUid", "senderName", "senderAvatar", "text", "gameYear", "gameWeek", "createdAtMs", "createdAt"]
+    },
+    "GameStateSave": {
+      "title": "GameStateSave",
+      "description": "Private cloud save state for a specific authenticated user.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "maxLength": 128 },
+        "gameState": { "type": "object" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["userId", "gameState", "updatedAt"]
+    },
+    "LeaderboardEntry": {
+      "title": "LeaderboardEntry",
+      "description": "Public leaderboard stat entry per user.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "maxLength": 128 },
+        "score": { "type": "number" },
+        "artistName": { "type": "string", "maxLength": 120 },
+        "itemName": { "type": "string", "maxLength": 200 },
+        "imageUrl": { "type": "string", "maxLength": 2500 },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "score", "artistName", "itemName", "imageUrl", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/world/{docId}": {
+      "schema": { "$ref": "#/entities/WorldClock" },
+      "description": "Global synchronized 2018 world clock (15 min = 1 week)."
+    },
+    "/onlineArtists/{uid}": {
+      "schema": { "$ref": "#/entities/OnlineArtist" },
+      "description": "Public online artist/group profiles for real players."
+    },
+    "/onlineSongs/{songId}": {
+      "schema": { "$ref": "#/entities/OnlineSong" },
+      "description": "Public released songs from real online players competing on global charts."
+    },
+    "/onlineReleases/{releaseId}": {
+      "schema": { "$ref": "#/entities/OnlineRelease" },
+      "description": "Public albums, EPs, singles, and scheduled countdowns from real online players."
+    },
+    "/onlineVideos/{videoId}": {
+      "schema": { "$ref": "#/entities/OnlineVideo" },
+      "description": "Public YouTube & Spotify videos from real online players."
+    },
+    "/onlineXPosts/{postId}": {
+      "schema": { "$ref": "#/entities/OnlineXPost" },
+      "description": "Global X feed posts from real online players."
+    },
+    "/onlineXPosts/{postId}/reactions/{reactorUid}": {
+      "schema": { "$ref": "#/entities/OnlineXReaction" },
+      "description": "Per-user reactions on online X posts."
+    },
+    "/onlineFollows/{followId}": {
+      "schema": { "$ref": "#/entities/OnlineFollow" },
+      "description": "Follow relationships between online players."
+    },
+    "/onlineChats/{chatId}": {
+      "schema": { "$ref": "#/entities/OnlineChat" },
+      "description": "Direct message conversations between two real online players."
+    },
+    "/onlineChats/{chatId}/messages/{messageId}": {
+      "schema": { "$ref": "#/entities/OnlineChatMessage" },
+      "description": "Individual messages inside an online DM thread."
+    },
+    "/saves/{userId}": {
+      "schema": { "$ref": "#/entities/GameStateSave" },
+      "description": "Private cloud save for user's online career."
+    },
+    "/users/{userId}/saves/{saveId}": {
+      "schema": { "$ref": "#/entities/GameStateSave" },
+      "description": "Private user save backup path."
+    },
+    "/{leaderboardCollection}/{userId}": {
+      "schema": { "$ref": "#/entities/LeaderboardEntry" },
+      "description": "Public leaderboard collections matching leaderboards_*."
+    }
+  }
+}

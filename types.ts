@@ -1,0 +1,3816 @@
+export interface ActingRole {
+  id: string;
+  title: string;
+  type: 'Movie' | 'TV Show' | 'Voice Acting' | 'Tour Documentary';
+  roleName: string;
+  roleType?: 'Leading Role' | 'Supporting Role' | 'Extra';
+  year: number;
+  status: 'Filming' | 'Completed' | 'Released';
+  trailerUrl?: string;
+  coverUrl?: string;
+  rating?: number;
+  season?: number;
+  studio?: string;
+  genre?: 'Drama' | 'Comedy' | 'Action' | 'Sci-Fi' | 'Horror' | 'Romance' | 'Thriller';
+  budget?: number;
+  boxOfficeDomestic?: number;
+  boxOfficeWorldwide?: number;
+  streamingViewers?: number;
+  rottenTomatoes?: number;
+  metacritic?: number;
+  imdbRating?: number;
+  methodActingUsed?: boolean;
+  soundtrackSongId?: string;
+  pressJunketDone?: boolean;
+  premiereOutfit?: string;
+  coStars?: string[];
+  directorName?: string;
+}
+
+export interface ActingAudition {
+  id: string;
+  title: string;
+  type: 'Movie' | 'TV Show' | 'Voice Acting' | 'Tour Documentary';
+  roleName: string;
+  roleType: 'Leading Role' | 'Supporting Role' | 'Extra';
+  genre: 'Drama' | 'Comedy' | 'Action' | 'Sci-Fi' | 'Horror' | 'Romance' | 'Thriller';
+  requiredSkill: number;
+  minPopularity: number;
+  studio: string;
+  pay: number;
+  durationWeeks: number;
+  scriptSnippet: string;
+}
+
+export interface TalentAgency {
+  id: string;
+  name: string;
+  description?: string;
+  feePercent: number;
+  minPopularity: number;
+  minSkill?: number;
+  perks: string[];
+  logo?: string;
+}
+
+export interface ActingOffer {
+  id: string;
+  title: string;
+  type: 'Movie' | 'TV Show' | 'Voice Acting' | 'Tour Documentary';
+  roleName: string;
+  roleType?: 'Leading Role' | 'Supporting Role' | 'Extra' | 'Recast' | string;
+  pay: number;
+  durationWeeks: number;
+  status: 'Pending' | 'Accepted' | 'Declined';
+  studio?: string;
+  genre?: 'Drama' | 'Comedy' | 'Action' | 'Sci-Fi' | 'Horror' | 'Romance' | 'Thriller';
+  coStars?: string[];
+  directorName?: string;
+}
+
+export interface ImdbProfile {
+  bio?: string;
+  headerImage?: string;
+  birthDate?: string;
+}
+
+export interface Artist {
+  skills?: any;
+  id: string;
+  name: string;
+  imageUrl?: string;
+  type?: string;
+  age: number;
+  country: string;
+  image: string;
+  pronouns: "he/him" | "she/her" | "they/them";
+  fandomName: string;
+}
+
+export interface Group {
+  id: string;
+  name: string;
+  image: string;
+  imageUrl?: string;
+  pronouns?: any;
+  members: Artist[];
+  fandomName: string;
+}
+
+export interface ITunesVersion {
+  id: string;
+  title: string;
+  coverArt: string;
+  releaseDate: GameDate;
+  isScheduled?: boolean;
+  sales: number;
+  weeklySales?: number;
+  price: number;
+}
+
+export interface Song {
+  id: string;
+  title: string;
+  genre: string;
+  subgenre?: string;
+  secondaryGenre?: string;
+  quality: number;
+  coverArt: string;
+  isReleased: boolean;
+  isVaulted?: boolean;
+  releaseId?: string;
+  dateReleased?: GameDate;
+  streams: number;
+  lastWeekStreams: number;
+  prevWeekStreams: number;
+  lastDayStreams?: number;
+  prevDayStreams?: number;
+  peakDailyStreams?: number;
+  actualLastWeekStreams?: number;
+  actualPrevWeekStreams?: number;
+  actualLastWeekSales?: number;
+  weeksOut?: number;
+  weeklyStreams?: number;
+  primaryArtist?: string;
+  pitchforkBoost?: boolean;
+  interviewBoost?: boolean;
+  duration: number; // in seconds
+  explicit: boolean;
+  artistId: string;
+  isPreReleaseSingle?: boolean;
+  isInterlude?: boolean;
+  singleType?: 'lead' | 'standalone' | 'interlude';
+  firstWeekStreams?: number;
+  firstWeekSales?: number;
+  removedStreams?: number;
+  playlistBoostWeeks?: number;
+  appleMusicPlaylistBoostWeeks?: number;
+  appleMusicStreams?: number;
+  appleMusicLastWeekStreams?: number;
+  appleMusicPrevWeekStreams?: number;
+  purchasedPlaylists?: {
+    playlistId: string;
+    position: number;
+    weeksRemaining: number;
+    platform?: 'spotify' | 'appleMusic';
+  }[];
+  tourBoostWeeks?: number;
+  promoBoostWeeks?: number;
+  itunesVersions?: ITunesVersion[];
+  peakWeeklyStreams?: number;
+  hype?: number;
+  remixOfSongId?: string;
+  trait?: "Smash Hit" | "TikTok Hit" | "Slow Burner" | "Flop" | "Radio Hit" | "Normal";
+  traitGenerated?: boolean;
+  isAvailableOnStreaming?: boolean;
+  isExclusive?: boolean;
+  exclusiveTo?: 'iTunes' | 'Apple Music' | 'Spotify' | 'YouTube Music';
+  exclusivePlatforms?: ('iTunes' | 'Apple Music' | 'Spotify' | 'YouTube Music')[];
+  sales?: number;
+  itunesSalesWeek?: number;
+  leakInfo?: {
+    illegalStreams: number;
+    illegalDownloads: number;
+  };
+  dailyStreams?: number[];
+  soundtrackTitle?:
+    | "F1 The Album"
+    | "Wicked"
+    | "Breaking Bad"
+    | "Dune: Part Two"
+    | "Deadpool & Wolverine"
+    | "Barbie"
+    | "Spider-Man: Beyond the Spider-Verse"
+    | "James Bond"
+    | "The Hunger Games"
+    | "Pitch Perfect"
+    | "The Great Gatsby"
+    | "Mamma Mia"
+    | "Twilight"
+    | string;
+  collaboration?: {
+    artistName: string;
+    cost: number;
+    qualityBoost: number;
+  };
+  lastCertification?: string;
+  certifications?: { level: string; date: GameDate }[];
+  isTakenDown?: boolean;
+  isFeatureToNpc?: boolean;
+  features?: string[];
+  npcArtistName?: string;
+  releaseDate?: GameDate;
+  reRecordingOf?: string; // ID of the original song
+  revenue?: number;
+  netRevenue?: number;
+  rightsSoldOriginalValue?: number;
+  rightsSoldPercent?: number;
+  rightsOwnerLabelId?: string;
+  itunesPrice?: string;
+  canvasVideo?: string;
+  canvasHashtags?: string[];
+  producers?: string[];
+  songwriters?: string[];
+  engineers?: string[];
+  anr?: string[];
+  contributorCutsTotal?: number;
+  controversialContributors?: string[];
+  aboutText?: string;
+  samples?: {
+    songTitle: string;
+    artistName: string;
+    type: "Sample" | "Interpolation";
+    coverArt: string;
+  }[];
+  isOnRadio?: boolean;
+  radioPlays?: number;
+  radioImpressions?: number;
+  lastWeekRadioPlays?: number;
+  weeksOnRadio?: number;
+  radioFormat?: string;
+  radioFormats?: string[];
+  formatRadioPlays?: Record<string, number>;
+  formatRadioImpressions?: Record<string, number>;
+  formatWeeksOnRadio?: Record<string, number>;
+  pendingRadioPromoSpins?: number;
+  hasRadioPromo?: boolean;
+  pendingFormatRadioPromoSpins?: Record<string, number>;
+  formatHasRadioPromo?: Record<string, boolean>;
+  formatConsecutiveWeeksAtNo1?: Record<string, number>;
+  overallRadioConsecutiveWeeksAtNo1?: number;
+  radioMilestonesPosted?: Record<string, { top10?: boolean; top5?: boolean; reachedNo1?: boolean; consecutiveWeeksAtNo1?: number }>;
+  
+  isOnUkRadio?: boolean;
+  ukRadioPlays?: number;
+  lastWeekUkRadioPlays?: number;
+  ukWeeksOnRadio?: number;
+  ukRadioFormat?: string;
+  pendingUkRadioPromoSpins?: number;
+  hasUkRadioPromo?: boolean;
+  hasTweetedBillionStreams?: boolean;
+  hasBillionsClubEmail?: boolean;
+  hasBillionsClubPerformance?: boolean;
+  hasGlobalSpotifyDebutTweeted?: boolean;
+  hasGlobalSpotifyBiggestDebutTweeted?: boolean;
+  regionalStreams?: {
+    "US": number;
+    "Canada": number;
+    "UK": number;
+    "Latin America": number;
+    "Asia": number;
+    "Africa": number;
+  };
+  lastWeekRegionalStreams?: {
+    "US": number;
+    "Canada": number;
+    "UK": number;
+    "Latin America": number;
+    "Asia": number;
+    "Africa": number;
+  };
+}
+
+export type ReleaseType =
+  "Single" | "EP" | "Album" | "Album (Deluxe)" | "Compilation" | "Live Album";
+
+export interface Review {
+  publication: "Pitchfork";
+  score: number;
+  text: string;
+  reviewer: string;
+}
+
+export interface Release {
+  id: string;
+  title: string;
+  type: ReleaseType;
+  coverArt: string;
+  songIds: string[];
+  releaseDate: GameDate;
+  isScheduled?: boolean;
+  review?: Review;
+  artistId: string;
+  countdownVideoUrl?: string; // For upcoming albums
+  countdownImageUrl?: string;
+  snapshotBanner?: string;
+  isTracklistRevealed?: boolean;
+  revealedTrackIds?: string[];
+  tracklistImageUrl?: string;
+  standardEditionId?: string;
+  isAppleMusicExpandedCover?: boolean;
+  pitchforkReview?: any;
+  copiesSold?: number;
+  isReleased?: boolean;
+  appleMusicAnimatedCoverUrl?: string;
+  preReleaseStreams?: number;
+  preReleaseSales?: number;
+  sales?: number;
+  peakDailyStreams?: number;
+  peakWeeklyStreams?: number;
+  isAppleMusicEssential?: boolean;
+  appleMusicEssentialReview?: string;
+  releasingLabel?: {
+    id?: string;
+    name: string;
+    dealWithMajor?: string;
+    exclusiveLicenseTo?: string;
+  } | null;
+  firstWeekStreams?: number;
+  firstWeekSales?: number;
+  wikipediaSummary?: string;
+  originalCoverArt?: string;
+  coverArtHistory?: { url: string; year: number; caption?: string }[];
+  wikipediaSections?: Record<string, string>;
+  wikipediaCustomData?: {
+    title?: string;
+    recordedYears?: string;
+    recordedStudios?: string;
+    producers?: string;
+    label?: string;
+  };
+  soundtrackInfo?: { albumTitle: string };
+  isFeatureToNpc?: boolean;
+  features?: string[];
+  npcArtistName?: string;
+  lastCertification?: string;
+  certifications?: { level: string; date: GameDate }[];
+  isTakenDown?: boolean;
+  rightsSoldOriginalValue?: number;
+  rightsSoldPercent?: number;
+  rightsOwnerLabelId?: string;
+  isAnnounced?: boolean;
+  preorderSales?: number;
+  vinylDelayed?: boolean;
+  delayedVinylPreorders?: number;
+  isExclusive?: boolean;
+  exclusiveTo?: 'iTunes' | 'Apple Music' | 'Spotify' | 'YouTube Music';
+  exclusivePlatforms?: ('iTunes' | 'Apple Music' | 'Spotify' | 'YouTube Music')[];
+  isAvailableOnStreaming?: boolean;
+}
+
+export interface Video {
+  id: string;
+  songId: string;
+  title: string;
+  type:
+    | "Music Video"
+    | "Lyric Video"
+    | "Visualizer"
+    | "Genius Verified"
+    | "Live Performance"
+    | "Interview"
+    | "Custom";
+  views: number;
+  likes?: number;
+  thumbnail: string;
+  releaseDate: GameDate;
+  isScheduled?: boolean;
+  artistId: string;
+  channelId?: string; // The active youtube channel
+  isFeatureVideo?: boolean;
+  firstWeekViews?: number;
+  lastWeekViews?: number;
+  description?: string;
+  mentionedNpcs?: string[];
+  isOnSpotify?: boolean;
+  spotifyViews?: number;
+  spotifyDailyViews?: number[];
+  isMtv?: boolean;
+  mtvViews?: number;
+  mtvWeeklyViews?: number;
+  mtvRotation?: "heavy" | "buzzworthy" | "medium" | "retired";
+  trlPeak?: number;
+  trlWeeks?: number;
+  director?: string;
+  budgetTier?: string;
+}
+
+export interface MerchProduct {
+  id: string;
+  releaseId: string; // From an EP or Album or song
+  name: string;
+  type: "Vinyl" | "CD" | "Ringtone" | "Cassette" | "T-Shirt" | "Hoodie" | "Tour Exclusive Merch";
+  price: number;
+  color?: string;
+  stock: number;
+  unitsSold?: number;
+  _actualWeeklySales?: number;
+  isPreorder?: boolean;
+  image: string;
+  artistId: string;
+  regionExclusive?: "Global" | "US" | "UK";
+  bonusSongIds?: string[];
+  bonusSongTitles?: string[];
+  shipmentDate?: GameDate;
+}
+
+export interface GeniusOffer {
+  type: "geniusInterview";
+  songId: string;
+  isAccepted: boolean;
+  emailId: string;
+}
+
+export interface OnTheRadarOffer {
+  type: "onTheRadarOffer";
+  songId: string;
+  isAccepted: boolean;
+  emailId: string;
+}
+
+export interface TrshdOffer {
+  type: "trshdOffer";
+  songId: string;
+  isAccepted: boolean;
+  emailId: string;
+}
+
+export interface FallonOffer {
+  type: "fallonOffer";
+  releaseId: string;
+  offerType: "performance" | "interview" | "both";
+  isAccepted: boolean;
+  emailId: string;
+}
+
+export interface PopBaseOffer {
+  type: "popBaseInterview" | "popBaseClarification";
+  emailId: string;
+  isAnswered: boolean;
+  question?: string;
+  originalPostContent?: string;
+  isControversial?: boolean;
+}
+
+export interface BillionsClubOffer {
+  type: "billionsClub";
+  emailId: string;
+  songId: string;
+  hasUploadedImage: boolean;
+  image?: string;
+}
+
+export interface AmaSubmissionOffer {
+  type: "amaSubmission";
+  emailId: string;
+  isSubmitted: boolean;
+}
+
+export interface AmaNominationOffer {
+  type: "amaNominations";
+  emailId: string;
+  hasPerformanceOffer: boolean;
+  isPerformanceAccepted?: boolean;
+}
+
+export interface AmaRedCarpetOffer {
+  type: "amaRedCarpet";
+  emailId: string;
+  isAttending?: boolean;
+}
+
+export interface BritSubmissionOffer {
+  type: "britSubmission";
+  emailId: string;
+  isSubmitted: boolean;
+}
+
+export interface BritNominationOffer {
+  type: "britNominations";
+  emailId: string;
+  hasPerformanceOffer?: boolean;
+  isPerformanceAccepted?: boolean;
+}
+
+export interface BritRedCarpetOffer {
+  type: "britRedCarpet";
+  emailId: string;
+  isAttending?: boolean;
+}
+
+export interface EventInvitationOffer {
+  type: "eventInvitation";
+  eventName: string;
+  eventType: "metGala" | "nyfw" | "afterParty" | "soundtrackPremiere";
+  emailId: string;
+  isAccepted?: boolean;
+  hostName?: string;
+  associatedSoundtrack?: string;
+}
+
+export interface GrammySubmissionOffer {
+  type: "grammySubmission";
+  emailId: string;
+  isSubmitted: boolean;
+}
+
+export interface GrammyNominationOffer {
+  type: "grammyNominations";
+  emailId: string;
+  hasPerformanceOffer: boolean;
+  isPerformanceAccepted?: boolean;
+}
+
+export interface GrammyRedCarpetOffer {
+  type: "grammyRedCarpet";
+  emailId: string;
+  isAttending?: boolean;
+}
+
+export interface OscarsSubmissionOffer {
+  type: "oscarSubmission";
+  emailId: string;
+  isSubmitted: boolean;
+}
+
+export interface OscarRedCarpetOffer {
+  type: "oscarRedCarpet";
+  emailId: string;
+  isAttending?: boolean;
+}
+
+export interface OscarsNominationOffer {
+  type: "oscarNominations";
+  emailId: string;
+  hasPerformanceOffer: boolean;
+  isPerformanceAccepted?: boolean;
+}
+
+export interface LeakNotification {
+  type: "leak";
+  songId: string;
+}
+
+export interface XSuspensionEmail {
+  type: "xSuspension";
+  isSuspended: boolean; // true for suspension, false for reinstatement
+}
+
+export interface XAppealResultEmail {
+  type: "xAppealResult";
+  isSuccessful: boolean;
+}
+
+export interface OnlyFansOffer {
+  type: "onlyfansRequest";
+  requestType: "image" | "video";
+  payout: number;
+  isFulfilled: boolean;
+  emailId: string;
+  senderUsername: string;
+}
+
+export interface FeatureVideoOffer {
+  type: "featureVideoOffer";
+  songId: string;
+  npcArtistName: string;
+  isAccepted?: boolean;
+}
+
+export interface FifaWorldCupOffer {
+  type: "fifaWorldCupOffer";
+  emailId: string;
+  isAccepted: boolean;
+  collabs: string[];
+}
+
+export interface SoundtrackOffer {
+  type: "soundtrackOffer";
+  albumTitle:
+    | "F1 The Album"
+    | "Wicked"
+    | "Breaking Bad"
+    | "Dune: Part Two"
+    | "Deadpool & Wolverine"
+    | "Barbie"
+    | "Spider-Man: Beyond the Spider-Verse"
+    | "James Bond"
+    | "The Hunger Games"
+    | "Pitch Perfect"
+    | "The Great Gatsby"
+    | "Mamma Mia"
+    | "Twilight";
+  isAccepted: boolean;
+  emailId: string;
+}
+
+export interface TouringDataUpdate {
+  type: "touringDataUpdate";
+  tourId: string;
+  venueIndex: number;
+}
+
+export interface VogueOffer {
+  type: "vogueOffer";
+  magazine: "Vogue" | "Vogue Korea" | "Vogue Italy";
+  isAccepted: boolean;
+  emailId: string;
+}
+
+export interface AppleMusicPlaylist {
+  id: string;
+  title: string;
+  type: 'setlist' | 'playlist';
+  badgeText?: string;
+  curatorText?: string;
+  bannerColor?: string;
+  customCoverUrl?: string;
+  songIds: string[];
+  createdAt?: GameDate;
+}
+
+export interface SpotifyPlaylistTrack {
+  songId: string;
+  artistName: string;
+  artistId: string;
+  title: string;
+  coverArt: string;
+  position: number;
+  addedDate: GameDate;
+  explicit?: boolean;
+}
+
+export interface SpotifyPlaylist {
+  id: string;
+  name: string;
+  description: string;
+  followers: number;
+  coverArt: string;
+  type: "global" | "genre" | "viral" | "new" | "this_is";
+  genre?: string;
+  tracks: SpotifyPlaylistTrack[];
+  bannedTrackIds?: string[];
+}
+
+export interface FeatureOffer {
+  type: "featureOffer";
+  npcArtistName: string;
+  payout: number;
+  songQuality: number;
+  promotion?: {
+    name: string;
+    durationWeeks: number;
+  };
+  isAccepted: boolean;
+  emailId: string;
+}
+
+export interface FeatureReleaseNotification {
+  type: "featureRelease";
+  songTitle: string;
+  npcArtistName: string;
+}
+
+export interface CoachellaOffer {
+  type: "coachellaOffer";
+  emailId: string;
+  isSubmitted: boolean;
+}
+
+export interface CoachellaSelectionOffer {
+  type: "coachellaSelection";
+  emailId: string;
+  slot: "headliner" | "mid" | "small" | "opener";
+  stage: string;
+  isSetlistSelected?: boolean;
+}
+
+export interface CheatingScandalEmail {
+  type: "cheatingScandal";
+  relationshipId: string;
+  isAnswered?: boolean;
+}
+
+export interface GiveBirthEmail {
+  type: "giveBirth";
+  isAnswered?: boolean;
+}
+
+export interface NpcContractRenewalOffer {
+  type: "npcContractRenewal";
+  npcName: string;
+  isAccepted: boolean;
+  emailId: string;
+}
+
+export type PromoInterviewSource =
+  | "Call Her Daddy"
+  | "Apple Music"
+  | "Snack Wars"
+  | "Rolling Stone"
+  | "Etalk"
+  | "Therapuss"
+  | "KISS FM";
+
+export interface ActingTrailerUploadOffer {
+  type: "actingTrailerUpload";
+  roleId: string;
+  roleTitle: string;
+}
+
+export interface ActingCoverUploadOffer {
+  type: "actingCoverUpload";
+  roleId: string;
+  roleTitle: string;
+}
+
+export interface ActingPremiereOffer {
+  type: "actingPremiere";
+  roleId: string;
+  roleTitle: string;
+  isAccepted?: boolean;
+}
+
+export interface PromoInterviewOffer {
+  type: "promoInterview";
+  source: PromoInterviewSource;
+}
+
+export interface InterviewOffer {
+  type: "interviewOffer";
+  releaseId: string;
+  interviewType: string;
+  outletName: string;
+  emailId: string;
+  isAccepted?: boolean;
+}
+
+export interface Email {
+  // Offer types
+
+  id: string;
+  sender: string;
+  senderIcon?:
+    | "spotify"
+    | "youtube"
+  | "mtv"
+    | "default"
+    | "label"
+    | "genius"
+    | "fallon"
+    | "popbase"
+    | "grammys"
+    | "x"
+    | "onlyfans"
+    | "soundtrack"
+    | "touringdata"
+    | "business"
+    | "vogue"
+    | "feature"
+    | "ontheradar"
+    | "trshd"
+    | "oscars"
+  | "goldenGlobes"
+  | "submit_for_golden_globes"
+    | "coachella"
+    | "amas"
+    | "brits"
+    | "imdb"
+  | "spotifyPodcasts"
+  | "spotifyForCreators"
+  | "managerPodcasts"
+    | "manager"
+    | "magazine"
+    | "tv"
+    | "event";
+  subject: string;
+  body?: string;
+  content?: string;
+  date: GameDate;
+  isRead: boolean;
+  offer?:
+    | GeniusOffer
+    | FallonOffer
+    | PopBaseOffer
+    | BillionsClubOffer
+    | GrammySubmissionOffer
+    | GrammyNominationOffer
+    | GrammyRedCarpetOffer
+    | LeakNotification
+    | XSuspensionEmail
+    | XAppealResultEmail
+    | OnlyFansOffer
+    | SoundtrackOffer
+    | FifaWorldCupOffer
+    | TouringDataUpdate
+    | VogueOffer
+    | FeatureOffer
+    | FeatureReleaseNotification
+    | FeatureVideoOffer
+    | OnTheRadarOffer
+    | TrshdOffer
+    | OscarsSubmissionOffer
+    | OscarsNominationOffer
+    | OscarRedCarpetOffer
+    | CoachellaOffer
+    | CoachellaSelectionOffer
+    | AmaSubmissionOffer
+    | AmaNominationOffer
+    | AmaRedCarpetOffer
+    | BritSubmissionOffer
+    | BritNominationOffer
+    | BritRedCarpetOffer
+    | CheatingScandalEmail
+    | GiveBirthEmail
+    | EventInvitationOffer
+    | NpcContractRenewalOffer
+    | PromoInterviewOffer
+    | ActingTrailerUploadOffer
+    | ActingCoverUploadOffer
+    | ActingPremiereOffer
+    | InterviewOffer;
+}
+
+export interface GameDate {
+  day?: number;
+  week: number;
+  year: number;
+}
+
+export interface Promotion {
+  id: string;
+  itemId: string; // songId, releaseId, or videoId
+  itemType: "song" | "release" | "video";
+  promoType: string; // e.g., 'Playlist Push', 'Nostalgia Campaign'
+  promoQuality: "high" | "medium" | "low";
+  region?: "Global" | "US" | "Canada" | "UK" | "Latin America" | "Asia" | "Africa";
+  weeklyCost: number;
+  boostMultiplier: number;
+  artistId: string;
+  targetPlatform?: 'all' | 'appleMusic';
+}
+
+export interface NpcSong {
+  uniqueId: string;
+  title: string;
+  artist: string;
+  genre: string;
+  basePopularity: number; // A value to derive weekly streams from
+  id?: string;
+  features?: string[];
+  collaboration?: any;
+  featuring?: string; // Player artist name
+  isPlayerFeature?: boolean;
+  coverArt?: string;
+  isReleased?: boolean;
+  releaseDate?: GameDate;
+  promotion?: { name: string; boost: number };
+  promoWeeksLeft?: number;
+  isOnRadio?: boolean;
+  radioPlays?: number;
+  radioImpressions?: number;
+  lastWeekRadioPlays?: number;
+  weeksOnRadio?: number;
+  radioFormat?: string;
+  radioFormats?: string[];
+  formatRadioPlays?: Record<string, number>;
+  formatRadioImpressions?: Record<string, number>;
+  pendingRadioPromoSpins?: number;
+  hasRadioPromo?: boolean;
+  
+  isOnUkRadio?: boolean;
+  ukRadioPlays?: number;
+  lastWeekUkRadioPlays?: number;
+  ukWeeksOnRadio?: number;
+  ukRadioFormat?: string;
+  pendingUkRadioPromoSpins?: number;
+  hasUkRadioPromo?: boolean;
+}
+
+export interface NpcAlbum {
+  id?: string;
+  uniqueId: string;
+  title: string;
+  artist: string;
+  label: "UMG" | "Republic" | "RCA" | "Island";
+  coverArt: string;
+  songIds: string[]; // uniqueId of NpcSong
+  salesPotential: number;
+}
+
+export interface ChartEntry {
+  rank: number;
+  lastWeek: number | null;
+  peak: number;
+  weeksOnChart: number;
+  title: string;
+  artist: string;
+  coverArt: string;
+  isPlayerSong: boolean;
+  songId?: string;
+  uniqueId: string;
+  weeklyStreams: number;
+  dailyStreams?: number;
+  itunesPrice?: string;
+  radioPlays?: number;
+  radioImpressions?: number;
+  radioFormat?: string;
+  radioFormats?: string[];
+  formatRadioPlays?: Record<string, number>;
+  formatRadioImpressions?: Record<string, number>;
+  digitalSales?: number;
+  isItunesVersion?: boolean;
+  itunesSales?: number;
+  itunesPriceString?: string;
+  itunesDuration?: number;
+  itunesExplicit?: boolean;
+  regionalStreams?: Record<string, number>;
+  points?: number;
+  genre?: string;
+}
+
+export interface VideoChartEntry {
+  rank: number;
+  lastWeek: number | null;
+  peak: number;
+  weeksOnChart: number;
+  title: string;
+  artist: string;
+  thumbnail: string;
+  isPlayerVideo: boolean;
+  videoId?: string;
+  uniqueId: string;
+  weeklyViews: number;
+}
+
+export interface AlbumChartEntry {
+  rank: number;
+  artistName?: string;
+  lastWeek: number | null;
+  peak: number;
+  weeksOnChart: number;
+  title: string;
+  artist: string;
+  label: string;
+  coverArt: string;
+  isPlayerAlbum: boolean;
+  albumId?: string;
+  uniqueId: string;
+  weeklyActivity: number;
+  dailyActivity?: number;
+  dailyStreams?: number;
+  weeklySales: number;
+  weeklySES?: number;
+  weeklyPureSales?: number;
+  itunesSales?: number;
+  digitalSales?: number;
+}
+
+export interface ChartRunEntry {
+  year: number;
+  week: number;
+  rank: number;
+}
+
+export interface ChartHistory {
+  [uniqueId: string]: {
+    peak: number;
+    weeksOnChart: number;
+    lastRank: number | null;
+    weeksAtNo1?: number;
+    weeksAtPeak?: number;
+    chartRun?: number[];
+    chartRunEntries?: ChartRunEntry[];
+    firstEntered?: { year: number; week: number };
+    peakDate?: { year: number; week: number };
+    hasTweetedBillboard200Debut?: boolean;
+  };
+}
+
+export interface Label {
+  id:
+    | "umg"
+    | "republic"
+    | "rca"
+    | "island"
+    | "interscope"
+    | "columbia"
+    | "atlantic"
+    | "epic"
+    | "quality_control"
+    | "tde"
+    | "roc_nation"
+    | "def_jam"
+    | "bad_boy"
+    | "polydor"
+    | "nice_life"
+    | "sony"
+    | "capitol"
+    | "motown"
+    | "geffen"
+    | "empire"
+    | "virgin"
+    | string;
+  name: string;
+  // FIX: Corrected typo 'Mid-High' to 'Mid-high' to match usage.
+  tier: "Top" | "Mid-high" | "Mid-Low" | "Low";
+  logo: string;
+  promotionMultiplier: number;
+  creativeControl: number; // 0-100, lower is less freedom for player
+  minQuality: number;
+  streamRequirement: number;
+  activeFromYear?: number;
+  activeUntilYear?: number;
+  isDistributionOnly?: boolean;
+  youtubeChannel?: {
+    name: string;
+    handle: string;
+    subscribers: number;
+    banner: string;
+  };
+  contractType?: "standard" | "petty";
+}
+
+export interface SignedNpc {
+  id: string;
+  name: string;
+  contract: {
+    advance: number;
+    royaltyRate: number;
+    durationWeeks: number;
+    startDate: { week: number; year: number };
+  };
+  revenueGenerated: number;
+  expenses: number;
+  status: "active" | "negotiating" | "expired" | "dropped";
+}
+
+export interface CustomLabel {
+  id: string;
+  name: string;
+  logo: string;
+  artistOwnerId: string;
+  dealWithMajorId?: Label["id"];
+  exclusiveLicenseId?: Label["id"];
+  tier: "Indie" | "Mid" | "High";
+  promotionMultiplier: number;
+  signedNpcs?: SignedNpc[];
+}
+
+export interface Contract {
+  labelId: string;
+  isCustom?: boolean;
+  artistId: string;
+  startDate: GameDate;
+  albumsReleased: number;
+
+  // Core terms
+  durationWeeks: number;
+  albumQuota: number;
+  advance: number;
+  royaltyPercent: number;
+
+  // Ownership & Rights
+  mastersOwnership: "Label" | "Artist" | "Split";
+  mastersSplitPercent: number; // Artist's share if Split
+  publishingRights: "Label" | "Artist" | "Split";
+  publishingSplitPercent: number; // Artist's share if Split
+  reversionClause: boolean; // Ownership reverts to artist after contract
+
+  // Financials
+  tourSupport: number;
+  marketingBudget: number;
+  merchPercent: number; // Artist's share
+  streamingSplitArtist: number;
+  sponsorshipSplitArtist: number;
+  recoupmentTerms: string; // '100%', '50%', 'None'
+  successBonus: number;
+  chartIncentives: string; // e.g. '$10K per #1'
+  revenueAuditRights: boolean;
+  producerSplitsLabelPaid: boolean;
+
+  // Operations & Control
+  creativeControl: "High" | "Medium" | "Low";
+  releaseDeadlines: boolean;
+  exclusivity: boolean;
+  collabPermissions: "Any" | "Label Approval" | "Strict";
+  socialMediaObligations: "None" | "Moderate" | "Heavy";
+  brandingApproval: "Artist" | "Label";
+  performanceRequirements: string;
+  independentRestrictions: boolean;
+  distributionRegions: string; // 'Worldwide', 'US Only', 'North America'
+  licensingRights: "Label" | "Artist" | "Split";
+
+  // Legal
+  renewalOptions: boolean;
+  earlyTermination: boolean;
+  penaltyAmount: number;
+  nda: boolean;
+  disputeTerms: string;
+}
+
+export interface LabelSubmission {
+  id: string;
+  release: Release;
+  submittedDate: GameDate;
+  status: "pending" | "awaiting_player_input" | "rejected" | "scheduled";
+  decisionDate?: GameDate;
+  projectReleaseDate?: GameDate;
+  projectSingleType?: 'lead' | 'standalone' | 'interlude';
+  projectEraImages?: string[];
+  isProjectAnnounced?: boolean;
+  feedback?: string;
+  singlesToRelease?: {
+    songId: string;
+    releaseDate: GameDate;
+    isScheduled?: boolean;
+    isAnnounced?: boolean;
+    singleType?: 'lead' | 'standalone' | 'interlude';
+    eraImages?: string[];
+  }[];
+  promoBudget?: number;
+  promoBudgetSpent?: number;
+  hasCountdownPage?: boolean;
+  preSaves?: number;
+  geniusInterviewRequestedForSongId?: string;
+  fallonPerformanceRequestedForSongId?: string;
+  magazineInterviewRequestedForSongId?: string;
+  newspaperInterviewRequestedForSongId?: string;
+  tvInterviewRequestedForSongId?: string;
+  recommendedSingles?: { songId: string; reason: string }[];
+  preorderSales?: number;
+  reviewDaysNeeded?: number;
+  tracklistImageUrl?: string;
+  isTracklistRevealed?: boolean;
+}
+
+export interface XUser {
+  id: string;
+  name: string;
+  username: string;
+  avatar: string;
+  isVerified: boolean | "blue" | "gold";
+  verifiedSince?: number; // year
+  country?: string;
+  isPlayer?: boolean;
+  bio?: string;
+  headerImage?: string;
+  followersCount: number;
+  followingCount: number;
+  xMonetization?: {
+    subscriptions: {
+      isActive: boolean;
+      perks: string[];
+      price: number;
+      subscribers: number;
+    };
+    revenueSharing: {
+      isActive: boolean;
+      eligibleViewsThisMonth: number;
+      lifetimeEarnings: number;
+    };
+  };
+}
+
+export interface XPollOption {
+  id: string;
+  text: string;
+  votes: number;
+}
+
+export interface TikTokVideo {
+  id: string;
+  authorId: string;
+  content: string;
+  songId?: string;
+  thumbnail?: string;
+  views: number;
+  likes: number;
+  comments: number;
+  createdAt: GameDate;
+}
+
+export interface TikTokPromoteOrder {
+  id: string;
+  goal: 'likes' | 'views' | 'followers' | 'profile_views';
+  goalTypeCategory?: 'boost_account' | 'get_sales' | 'get_leads';
+  targetType: 'video' | 'account';
+  videoId?: string;
+  videoThumbnail?: string;
+  videoTitle?: string;
+  status: 'active' | 'completed' | 'under_review' | 'pending';
+  adCost: number;
+  currencySymbol: string;
+  originalCurrencyCost: number;
+  estimatedResultsMin: number;
+  estimatedResultsMax: number;
+  viewsGained: number;
+  likesGained: number;
+  commentsGained: number;
+  followersGained: number;
+  profileViewsGained: number;
+  targetViews: number;
+  targetLikes: number;
+  targetFollowers: number;
+  targetProfileViews: number;
+  durationDays: number;
+  remainingDays: number;
+  startDate: string;
+  createdAtDate: GameDate;
+}
+
+export interface InstagramPost {
+  id: string;
+  imageUrls: string[];
+  caption: string;
+  likes: number;
+  comments: number;
+  date: GameDate;
+}
+
+export interface InstagramStory {
+  id: string;
+  imageUrl: string;
+  date: GameDate;
+}
+
+export interface InstagramReel {
+  id: string;
+  videoUrl: string;
+  caption: string;
+  views: number;
+  likes: number;
+  comments: number;
+  date: GameDate;
+}
+
+export interface InstagramChannelReaction {
+  emoji: string;
+  count: number;
+  targetCount?: number;
+  userReacted?: boolean;
+}
+
+export interface InstagramChannelMessage {
+  id: string;
+  senderId: string;
+  senderName: string;
+  senderAvatar: string;
+  text?: string;
+  imageUrl?: string;
+  post?: InstagramPost;
+  reel?: InstagramReel;
+  createdAt: string;
+  date: GameDate;
+  sentAt?: number;
+  durationMs?: number;
+  reactions: InstagramChannelReaction[];
+  isLiveGrowing?: boolean;
+}
+
+export interface XComment {
+  id: string;
+  authorId: string;
+  content?: string;
+  image?: string;
+  gif?: string;
+  likes: number;
+  comments?: number;
+  retweets?: number;
+  views?: number;
+  date: GameDate;
+}
+
+export interface XPost {
+  id: string;
+  authorId: string;
+  content: string;
+  image?: string;
+  image2?: string;
+  image3?: string;
+  image4?: string;
+  images?: string[];
+  video?: string;
+  poll?: {
+    options: XPollOption[];
+    totalVotes: number;
+  };
+  likes: number;
+  retweets: number;
+  views: number;
+  quoteOf?: XPost;
+  date: GameDate;
+  comments?: XComment[];
+  isSpace?: boolean;
+  spaceInfo?: {
+    listeners: number;
+    songIdPromoted?: string;
+    isEnded?: boolean;
+  };
+  billionsClubSongTitle?: string;
+  spotifySnapshotAlbums?: { rank: number; title: string; streams: number; dailyStreams?: number; coverArt: string; move: number | string; percentChange: number }[];
+  isPinned?: boolean;
+  isHighlight?: boolean;
+  isRepost?: boolean;
+  repostedBy?: string;
+  originalPost?: XPost;
+  replyToId?: string;
+  replyToPost?: XPost;
+  videoDuration?: string;
+  videoViews?: number;
+}
+
+export interface XMessage {
+  id: string;
+  senderId: string; // 'player' or a userId
+  text: string;
+  image?: string;
+  date: GameDate;
+}
+
+export interface XChat {
+  id: string;
+  name: string;
+  avatar: string;
+  isGroup: boolean;
+  participants: string[]; // array of userIds, 'player' is one of them
+  messages: XMessage[];
+  isRead: boolean;
+}
+
+export interface XTrend {
+  id: string;
+  category: string;
+  title: string;
+  postCount: number;
+}
+
+export type PaparazziPhotoCategory =
+  "Spotted" | "Scandal" | "Fashion" | "Candid" | "TikTok Fan";
+
+export interface XMedia {
+  id: string;
+  url: string;
+  year: number;
+}
+
+export interface PaparazziPhoto {
+  id: string;
+  image: string;
+  category: PaparazziPhotoCategory;
+  year?: number;
+}
+
+export interface GrammyAward {
+  year: number;
+  category:
+    | "Best New Artist"
+    | "Album of the Year"
+    | "Record of the Year"
+    | "Song of the Year"
+    | "Best Pop Song"
+    | "Best Rap Song"
+    | "Best R&B Song"
+    | "Pop Album"
+    | "Rap Album"
+    | "R&B Album"
+    | "Best Asian Pop Music Performance"
+    | "Best Rap Performance"
+    | "Best Melodic Rap Performance"
+    | "Best African Music Performance"
+    | "Best Latin Song"
+    | "Best Remixed Recording";
+  itemId: string; // releaseId, songId, or artistId
+  itemName: string;
+  artistName: string;
+  isWinner: boolean;
+}
+
+export type AmaCategoryName =
+  | "Artist of the Year"
+  | "New Artist of the Year"
+  | "Album of the Year"
+  | "Song of the Year"
+  | "Music Video of the Year"
+  | "Favorite Pop Artist"
+  | "Favorite Pop Album"
+  | "Favorite Pop Song"
+  | "Favorite Hip-Hop Artist"
+  | "Favorite Hip-Hop Album"
+  | "Favorite Hip-Hop Song"
+  | "Favorite R&B Artist"
+  | "Favorite R&B Album"
+  | "Favorite R&B Song"
+  | "Favorite Latin Artist"
+  | "Favorite Latin Album"
+  | "Favorite Latin Song"
+  | "Favorite Country Artist"
+  | "Favorite Country Album"
+  | "Favorite Country Song"
+  | "Favorite Rock Artist"
+  | "Favorite Rock Album"
+  | "Favorite Rock Song"
+  | "Favorite Dance/Electronic Artist";
+
+export interface AmaAward {
+  year: number;
+  category: AmaCategoryName;
+  itemId: string; // releaseId, songId, or artistId
+  itemName: string;
+  artistName: string;
+  isWinner: boolean;
+}
+
+export interface OscarAward {
+  year: number;
+  category: "Best Original Song" | "Best Actor/Actress (Leading Role)" | "Best Supporting Actor/Actress (Supporting Role)";
+  itemId: string; // songId or roleId
+  itemName: string;
+  artistName: string;
+  isWinner: boolean;
+}
+
+
+export interface GoldenGlobeAward {
+  year: number;
+  category: "Best Actor/Actress" | "Best Supporting Actor/Actress" | "Best Voice Acting" | "Best TV Show" | "Best Movie" | "Best Soundtrack" | "Best Original Song";
+  itemId: string;
+  itemName: string;
+  artistName: string;
+  isWinner: boolean;
+}
+
+export interface GoldenGlobeContender {
+  id: string;
+  name: string;
+  artistName: string;
+  isPlayer: boolean;
+  score: number;
+  coverArt?: string;
+}
+
+export interface GoldenGlobeCategory {
+  name: GoldenGlobeAward["category"];
+  nominees: GoldenGlobeContender[];
+  winner?: GoldenGlobeContender;
+}
+
+export interface GrammyContender {
+  id: string;
+  name: string;
+  artistName: string;
+  isPlayer: boolean;
+  score: number;
+  coverArt?: string;
+}
+
+export interface OscarContender {
+  id: string;
+  name: string;
+  artistName: string;
+  isPlayer: boolean;
+  score: number;
+  coverArt?: string;
+}
+
+export interface GrammyCategory {
+  name: GrammyAward["category"];
+  nominees: GrammyContender[];
+  winner?: GrammyContender;
+}
+
+export interface AmaContender {
+  artistId: string;
+  artistName: string;
+  itemId: string; // releaseId, songId, or artistId
+  itemName: string;
+  score: number;
+}
+
+export interface AmaCategory {
+  name: AmaCategoryName;
+  nominees: AmaContender[];
+  winner?: AmaContender;
+}
+
+export type BritCategoryName =
+  | "Artist of the Year"
+  | "British Album of the Year"
+  | "Song of the Year"
+  | "BRITs Rising Star"
+  | "BRITs Best New Artist"
+  | "Best Pop Act"
+  | "Best Rap Act"
+  | "Best R&B Act"
+  | "Best Electronic Act";
+
+export interface BritAward {
+  year: number;
+  category: BritCategoryName;
+  itemId: string; // releaseId, songId, or artistId
+  itemName: string;
+  artistName: string;
+  isWinner: boolean;
+}
+
+export interface BritContender {
+  artistId: string;
+  artistName: string;
+  itemId: string; // releaseId, songId, or artistId
+  itemName: string;
+  score: number;
+  coverArt?: string;
+}
+
+export interface BritCategory {
+  name: BritCategoryName;
+  nominees: BritContender[];
+  winner?: BritContender;
+}
+
+export interface OscarCategory {
+  name: "Best Original Song" | "Best Actor/Actress" | "Best Supporting Actor/Actress" | "Best Voice Actor/Actress";
+  nominees: OscarContender[];
+  winner?: OscarContender;
+}
+
+export type GameView =
+  | "tvAndFilm"
+  | "actingCareer"
+  | "pregnancyTracker"
+  | "crypto"
+  | "imdb"
+  | "spotifyPodcasts"
+  | "spotifyForCreators"
+  | "managerPodcasts"
+    | "manager"
+  | "game"
+  | "myspace"
+  | "spotify"
+  | "studio"
+  | "release"
+  | "pitchfork"
+  | "youtube"
+  | "createVideo"
+  | "merchStore"
+  | "inbox"
+  | "catalog"
+  | "promote"
+  | "billboard"
+  | "spotifyChart"
+  | "youtubeVideoDetail"
+  | "youtubeStudio"
+  | "youtubeMusic"
+  | "gigs"
+  | "labelReleasePlan"
+  | "createGeniusInterview"
+  | "x"
+  | "xProfile"
+  | "xChatDetail"
+  | "xCreateSpace"
+  | "xActiveSpace"
+  | "xAnalytics"
+  | "xCreatorStudio"
+  | "spotifyForArtists"
+  | "createFallonPerformance"
+  | "createFallonInterview"
+  | "createMagazineInterview"
+  | "createTvInterview"
+  | "spotifyAlbumCountdown"
+  | "createLabel"
+  | "manageLabel"
+  | "albumPromo"
+  | "billboardAlbums"
+  | "achievements"
+  | "redMicProUnlock"
+  | "redMicProDashboard"
+  | "wikipedia"
+  | "grammys"
+  | "submitForGrammys"
+  | "mtv"
+  | "createGrammyPerformance"
+  | "grammyRedCarpet"
+  | "contractRenewal"
+  | "itunes"
+  | "onlyfansSetup"
+  | "onlyfans"
+  | "createOnlyFansPost"
+  | "chartHistory"
+  | "billboardChartHistory"
+  | "hot100ChartRace"
+  | "ukSinglesChartRace"
+  | "ukChartHistory"
+  | "albumSalesChart"
+  | "labels"
+  | "releaseHub"
+  | "createSoundtrack"
+  | "createFifaWorldCup"
+  | "spotifySoundtrackDetail"
+  | "gameGuide"
+  | "tours"
+  | "businessStore"
+  | "touring"
+  | "touringView"
+  | "ticketmaster"
+  | "seatMap"
+  | "createTour"
+  | "tourDetail"
+  | "management"
+  | "security"
+  | "spotifyTopSongs"
+  | "spotifyTopAlbums"
+  | "kworbData"
+  | "kworb"
+  | "createVogueFeature"
+  | "spotifyWrapped"
+  | "hotPopSongs"
+  | "hotRapRnb"
+  | "electronicChart"
+  | "countryChart"
+  | "createFeature"
+  | "createFeatureVideo"
+  | "createOnTheRadarPerformance"
+  | "createTrshdPerformance"
+  | "appleMusic"
+  | "oscars"
+  | "submitForOscars"
+  | "createOscarPerformance"
+  | "oscarRedCarpet"
+  | "switchSave"
+  | "redCarpetHistory"
+  | "amas"
+  | "submitForAmas"
+  | "createAmaPerformance"
+  | "amaRedCarpet"
+  | "vmaRedCarpet"
+  | "brits"
+  | "submitForBrits"
+  | "createBritPerformance"
+  | "britRedCarpet"
+  | "dating"
+  | "moviePremiereRedCarpet"
+  | "goldenGlobeRedCarpet"
+  | "google"
+  | "tiktok"
+  | "instagram"
+  | "tmzArticle"
+  | "riaa"
+  | "attendEvent"
+  | "radioDash"
+  | "radioCharts"
+  | "promoInterview"
+  | "chartPredictions"
+  | "albumPredictions"
+  | "limewire"
+  | "ascap"
+  | "kalshi"
+  | "ukChart"
+  | "ukAlbumsChart"
+  | "kaiStreamSetup"
+  | "billboard_news"
+  | "goldenGlobes"
+  | "golden_globes"
+  | "submitForGoldenGlobes"
+  | "submit_for_golden_globes"
+  | "itunesDashboard"
+  | "leaderboard"
+  | "reddit"
+  | "rollingstone"
+  | "spotifyVideoChart"
+  | "vevo"
+  | "vogue"
+  | "vmas"
+  | "apps"
+  | "misc"
+  | "socials"
+  | "appleMusicForArtists"
+  | "customAwardShow";
+
+export type Tab = "Home" | "Apps" | "Charts" | "Misc" | "Business";
+
+export interface CustomAwardShowCategory {
+  id: string;
+  name: string;
+  eligibility: "album" | "song" | "artist" | "music_video" | string;
+  genreFilter?: string;
+  genre?: string;
+}
+
+export interface RedMicProState {
+  unlocked: boolean;
+  subscriptionType: "yearly" | "lifetime" | "code" | null;
+  subscriptionEndDate?: GameDate;
+  hypeMode?: "locked" | "manual";
+  appOrder?: string[];
+}
+
+export interface OnlyFansPost {
+  id: string;
+  date: GameDate;
+  caption: string;
+  image: string;
+  price: number;
+  likes: number;
+  comments: number;
+  tips: number;
+}
+
+export interface OnlyFansProfile {
+  username: string;
+  displayName: string;
+  bio: string;
+  profilePicture: string;
+  bannerPicture: string;
+  subscriptionPrice: number;
+  subscribers: number;
+  posts: OnlyFansPost[];
+  likes: number;
+  totalGross: number;
+  totalNet: number;
+  earningsByMonth: { [yearMonth: string]: { gross: number; net: number } };
+}
+
+export interface XSuspensionStatus {
+  isSuspended: boolean;
+  reason: "fan_war_reports" | "random";
+  appealSentDate?: GameDate;
+  suspendedDate?: GameDate;
+  accountId?: string; // tie suspension to a specific account
+}
+
+export interface SoundtrackTrack {
+  isPlayerSong: boolean;
+  songId: string; // Player Song ID or NPC uniqueId
+  title: string;
+  artist: string;
+  streams: number;
+  lastWeekStreams: number;
+  prevWeekStreams: number;
+  duration: number;
+  explicit: boolean;
+}
+
+export interface SoundtrackAlbum {
+  id: string;
+  title: string;
+  coverArt: string;
+  tracks: SoundtrackTrack[];
+  releaseDate: GameDate;
+  isScheduled?: boolean;
+  label: string;
+  artistId: string; // The player who contributed
+  isReleased: boolean;
+}
+
+export interface Venue {
+  id: string;
+  name: string;
+  city: string;
+  capacity: number;
+  region?: string;
+  ticketPrice: number;
+  soldOut: boolean;
+  revenue: number;
+  ticketsSold: number;
+  tier?: 1 | 2 | 3;
+}
+
+export interface Tour {
+  id: string;
+  artistId: string;
+  name: string;
+  bannerImage: string;
+  venues: Venue[];
+  setlist: string[];
+  status: "planning" | "presale" | "active" | "finished" | "cancelled";
+  currentVenueIndex: number;
+  totalRevenue: number;
+  ticketsSold: number;
+  useDynamicPricing?: boolean;
+  useVipPackages?: boolean;
+  presalePercentage?: number;
+  presaleCollectedPercentage?: number;
+  presaleCollectionQueue?: { weeksRemaining: number; amount: number }[];
+  presaleDemand?: number; // Estimated demand
+  isSetlistMissingHits?: boolean; // Flag to apply -50% penalty
+  merchItems?: MerchProduct[];
+  openerId?: string;
+  guestIds?: string[];
+  bookingCostsPaid?: number;
+  showsPerWeek?: number;
+  venueCategory?: 'Small Halls' | 'Large Halls' | 'Arenas' | 'Stadiums';
+  tier?: 1 | 2 | 3;
+}
+
+export interface Brand {
+  id: string;
+  name: string;
+  category: string;
+  minPopularity: number;
+  oneOffPayout: number;
+  ambassadorWeeklyPayout: number;
+  contractDurationWeeks: number;
+  logoUrl: string;
+  description: string;
+}
+
+export interface BrandAmbassadorContract {
+  id: string;
+  brandId: string;
+  brandName: string;
+  brandLogo: string;
+  durationWeeks: number;
+  remainingWeeks: number;
+  weeklyPayout: number;
+  totalEarned: number;
+  signedWeek: number;
+  signedYear: number;
+}
+
+export interface SongMediaRequest {
+  id: string;
+  mediaTitle: string;
+  type: 'TV Show' | 'Trailer' | 'Promotional Campaign' | 'Web/Game';
+  upfrontPayout: number;
+  streamBoostPercent: number;
+  durationWeeks: number;
+  logoUrl?: string;
+  imageUrl?: string;
+  minPopularity: number;
+  description?: string;
+}
+
+export interface ActiveSyncLicense {
+  id: string;
+  songId: string;
+  songTitle: string;
+  mediaTitle: string;
+  mediaType: string;
+  upfrontPayout: number;
+  streamBoostPercent: number;
+  remainingWeeks: number;
+}
+
+export interface Manager {
+  id: string;
+  name: string;
+  bio: string;
+  yearlyCost: number;
+  popularityBoost: number;
+  autoGigsPerWeek: number;
+  unlocksTier: number;
+}
+
+export interface SecurityTeam {
+  id: string;
+  name: string;
+  weeklyCost: number;
+  leakProtection: number;
+}
+
+export interface VoguePhotoshoot {
+  id: string;
+  magazine: "Vogue" | "Vogue Korea" | "Vogue Italy";
+  coverImage: string;
+  photoshootImages: string[];
+  interviewAnswers: { question: string; answer: string }[];
+  date: GameDate;
+}
+
+export interface DivorceProposal {
+  id: string;
+  proposedBy: "player" | "partner";
+  custody: "player" | "joint" | "partner";
+  alimonyPayor: "player" | "partner" | "none";
+  alimonyAmount: number;
+  childSupportPayor: "player" | "partner" | "none";
+  childSupportAmount: number;
+  status: "pending_judge" | "declined" | "accepted";
+  declinedReason?: string;
+  dateProposed: GameDate;
+}
+
+export interface DivorceCase {
+  id: string;
+  relationshipId: string;
+  partnerName: string;
+  startYear: number;
+  startWeek: number;
+  weeksInBattle: number;
+  currentProposal: DivorceProposal | null;
+  history: DivorceProposal[];
+  isFinalized: boolean;
+  finalizedDate?: GameDate;
+  agreedSettlement?: {
+    custody: "player" | "joint" | "partner";
+    alimonyPayor: "player" | "partner" | "none";
+    alimonyAmount: number;
+    childSupportPayor: "player" | "partner" | "none";
+    childSupportAmount: number;
+  };
+  isLeaked?: boolean;
+  leakedDate?: GameDate;
+}
+
+export interface PrenupAgreement {
+  id: string;
+  partnerName: string;
+  signedDate: GameDate;
+  assetProtection: "standard_50_50" | "full_player_protection" | "partner_favored";
+  alimonyClause: "waived" | "capped_5k" | "generous_25k";
+  infidelityPenalty: number; // e.g. 0, 500000, 1000000
+  status: "draft" | "signed" | "rejected";
+}
+
+export interface RelationshipPeriod {
+  id: string;
+  startDate: GameDate;
+  endDate?: GameDate;
+  finalStatus: "dating" | "engaged" | "married" | "divorcing" | "ex";
+  engagedStartYear?: number;
+  engagedStartWeek?: number;
+  marriedStartYear?: number;
+  marriedStartWeek?: number;
+  splitReason?: string;
+}
+
+export interface WeddingDetails {
+  style: "vegas" | "backyard" | "tuscany" | "met_gala";
+  cost: number;
+  year: number;
+  week: number;
+  title: string;
+}
+
+export interface RelationshipDrama {
+  id: string;
+  headline: string;
+  outlet: "tmz" | "popbase";
+  type: "cheating" | "fighting" | "secret_vacation";
+  resolved: boolean;
+  date: GameDate;
+}
+
+export interface Relationship {
+  id: string;
+  partnerName: string;
+  partnerType: "npc" | "custom";
+  startYear: number;
+  startWeek?: number;
+  engagedStartYear?: number;
+  engagedStartWeek?: number;
+  marriedStartYear?: number;
+  marriedStartWeek?: number;
+  endYear: number | null;
+  endWeek?: number;
+  status: "dating" | "engaged" | "married" | "divorcing" | "ex";
+  isPublic: boolean;
+  image?: string;
+  divorceCase?: DivorceCase;
+  prenup?: PrenupAgreement;
+  // Tracking historical periods across multiple breakups & get backs
+  periods?: RelationshipPeriod[];
+  timesDated?: number;
+  // 10 Relationship & Children Features
+  affection?: number; // 0-100
+  dramaLevel?: number; // 0-100
+  compatibility?: number; // 0-100
+  petName?: string;
+  weddingDetails?: WeddingDetails;
+  hasCollaborated?: boolean;
+  collabTrackTitle?: string;
+  anniversariesCelebrated?: number[];
+  activeDrama?: RelationshipDrama;
+  coParentingStatus?: "supportive" | "cordial" | "tense";
+}
+
+export { formatMarriageDuration } from "./utils/relationshipUtils";
+
+export interface KidActivity {
+  id: string;
+  type: "piano" | "vocal" | "acting" | "sports" | "art";
+  name: string;
+  skillBonus: number;
+}
+
+export interface Kid {
+  id: string;
+  name: string;
+  birthDate: GameDate;
+  isArtist: boolean;
+  parentName?: string;
+  // Features for children
+  schooling?: "public" | "elite_private" | "swiss_boarding" | "performing_arts" | "homeschool";
+  activities?: KidActivity[];
+  talentStats?: {
+    singing: number;
+    rapping: number;
+    writing: number;
+    production: number;
+    charisma: number;
+  };
+  privacyStatus?: "private" | "spotlight";
+  personalityTrait?: "Prodigy Musician" | "Fashion Trendsetter" | "Athletic Dynamo" | "Creative Genius" | "Sweet & Humble";
+  lastBirthdayCelebratedYear?: number;
+  trustFundAmount?: number;
+  monthlyAllowance?: number;
+  dedicatedSongTitle?: string;
+  photoUrl?: string;
+  image?: string;
+}
+
+export interface Pregnancy {
+  partnerName: string;
+  conceptionDate: GameDate;
+  revealed: boolean;
+  loggedSymptoms?: string[];
+  candidateNames?: string[];
+  kickCount?: number;
+}
+
+export interface RedditComment {
+  id: string;
+  author: string;
+  text: string;
+  upvotes: number;
+  timeAgo: string;
+  userFlair?: string;
+  isOp?: boolean;
+  replies?: RedditComment[];
+}
+
+export interface RedditPost {
+  id: string;
+  author: string;
+  timeAgo: string;
+  title: string;
+  content: string;
+  upvotes: number;
+  commentCount: number;
+  image: string | null;
+  comments?: RedditComment[];
+  subreddit?: string;
+  flair?: string;
+  userFlair?: string;
+}
+
+
+export interface CryptoCoin {
+  id: string;
+  name: string;
+  ticker: string;
+  logo: string;
+  launchPrice: number;
+  currentPrice: number;
+  totalSupply: number;
+  playerOwnedCoins: number;
+  marketCap: number;
+  priceHistory: number[];
+  holders: number;
+  tradingVolume: number; // 24h
+  reputation: {
+    hype: number;
+    trust: number;
+    utility: number;
+  };
+  isRugpulled?: boolean;
+  utilityEnabled: {
+    merch: boolean;
+    tickets: boolean;
+    fanClub: boolean;
+    voting: boolean;
+  };
+  launchedDate: GameDate;
+}
+
+export type TvShowCategory = 'Reality TV' | 'Comedy' | 'Drama' | 'Romance' | 'Horror / Thriller' | 'Sci-Fi / Fantasy' | 'Docuseries';
+export type MovieCategory = 'Comedy' | 'Romance' | 'Drama' | 'Action' | 'Horror' | 'Sci-Fi' | 'Thriller';
+
+export interface CastMember {
+  id: string;
+  name: string;
+  roleType: 'main' | 'recurring' | 'guest';
+  relationType: 'partner' | 'ex' | 'child' | 'artist' | 'celebrity' | 'friend' | 'group_member';
+  image?: string;
+  isFree: boolean;
+  cost?: number;
+  popularityBonus?: number;
+}
+
+export interface TvEpisode {
+  episodeNumber: number;
+  seasonNumber: number;
+  title: string;
+  synopsis?: string;
+  airDate?: GameDate;
+  viewers: number;
+  rating: number;
+  highlights: string[];
+  thumbnailUrl?: string;
+  youtubeVideoId?: string;
+}
+
+export interface TvAndFilmProject {
+  id: string;
+  title: string;
+  type: 'tv' | 'movie';
+  category: TvShowCategory | MovieCategory;
+  synopsis: string;
+  coverUrl: string;
+  status: 'in_production' | 'airing' | 'completed' | 'canceled';
+  releaseDate?: GameDate;
+  seasonsCount?: number;
+  currentSeason?: number;
+  episodesPerSeason?: number;
+  episodesAiredInSeason?: number;
+  episodes?: TvEpisode[];
+  cast?: CastMember[];
+  isRenewed?: boolean;
+  canBeRenewed?: boolean;
+  isRealityTv?: boolean;
+  hasYouTubeDeal?: boolean;
+  youtubeEpisodeThumbnails?: { [episodeNum: number]: string };
+  budget?: number;
+  network?: string;
+  imdbRating?: number;
+  totalViewers?: number;
+  boxOfficeRevenue?: number;
+  productionWeeksRemaining?: number;
+  hypeBoost?: number;
+}
+
+export interface MySpaceFeedComment {
+  id: string;
+  authorName: string;
+  authorAvatar: string;
+  content: string;
+  date: GameDate;
+}
+
+export interface MySpaceFeedPost {
+  id: string;
+  authorId: string;
+  authorName: string;
+  authorHandle?: string;
+  authorAvatar: string;
+  isVerified?: boolean;
+  content: string;
+  image?: string;
+  kudos: number;
+  commentsCount: number;
+  repostsCount?: number;
+  date: GameDate;
+  isPlayer?: boolean;
+  mood?: string;
+  nowPlaying?: { title: string; artist: string };
+  category?: "charts" | "industry" | "fan" | "friends";
+  comments?: MySpaceFeedComment[];
+  hasLiked?: boolean;
+}
+
+export interface ArtistData {
+  followersHistory?: any;
+  name?: string;
+  image?: string;
+  id?: string;
+  avatarUrl?: string;
+  artistName?: string;
+  profile?: any;
+  vmaHistory?: any[];
+  allPlayerArtists?: any[];
+  cryptoCoin?: CryptoCoin;
+  aboutBio?: string;
+  aboutImages?: string[];
+  careerStage?: 'neutral' | 'flop' | 'smash';
+  flopEraLock?: boolean;
+  eraLock?: boolean;
+  stuckOnEra?: boolean;
+  isBlacklistedByLabel?: boolean;
+  money: number;
+  location?: "US" | "Canada" | "UK" | "Asia" | "Latin America" | "Africa";
+  lastMoveDate?: GameDate;
+  yearlyIncome?: number;
+  hype: number;
+  peakHype?: number;
+  numberOneDebuts?: number;
+  hasTweetedBillionTotalStreams?: boolean;
+  biggestGlobalSpotifyDebutStreams?: number;
+  biggestGlobalSpotifyDebutSongId?: string;
+  highestHot100SongTitle?: string;
+  highestHot100PeakRank?: number;
+  hasEarnedFirstUkTop10?: boolean;
+  grammySubmissionWeek?: number;
+  grammySubmissionYear?: number;
+  hasGrammyGuruLastNomTweetedYear?: number;
+  hasGrammyGuruSubmissionsTweetedYear?: number;
+  hasGrammyGuruWeek44ForecastTweetedYear?: number;
+  hasGrammyGuruBnaRejectedTweeted?: boolean;
+  hasGrammyGuruFanQuoteTweetedYear?: number;
+  hasGrammyGuruGenreMoveTweetedYear?: number;
+  hasGrammyGuruPredictionsTweetedYear?: number;
+  publicImage: number;
+  popularity: number;
+  regionalPopularity?: {
+    "US": number;
+    "Canada": number;
+    "UK": number;
+    "Latin America": number;
+    "Asia": number;
+    "Africa": number;
+  };
+  endorsedParty?: "democrat" | "republican";
+  endorsementCountThisYear?: number;
+  lastEndorsementYear?: number;
+  songs: Song[];
+  releases: Release[];
+  podcastPitchOffers?: PodcastPitchOffer[];
+  monthlyListeners: number;
+  peakMonthlyListeners?: number;
+  lastFourWeeksStreams: number[];
+  lastFourWeeksViews: number[];
+  youtubeSubscribers: number;
+  youtubeBanner?: string;
+  ukBannerImage?: string;
+  chartHistoryImage?: string;
+  billboardImage?: string;
+  youtubePartnerProgram?: {
+    isActive: boolean;
+    eligibleViewsThisQuarter: number;
+    lifetimeEarnings: number;
+  };
+  tiktokFollowers: number;
+  isHiatus?: boolean;
+  hiatusStartWeek?: number;
+  hiatusStartYear?: number;
+  hiatusAnnounced?: boolean;
+  comebackAnticipation?: number;
+  tiktokVideos: TikTokVideo[];
+  tiktokPromotes?: TikTokPromoteOrder[];
+  instagramFollowers?: number;
+  instagramBio?: string;
+  instagramLink?: string;
+  instagramCommunityName?: string;
+  instagramCommunityMembers?: number;
+  instagramChannelMessages?: InstagramChannelMessage[];
+  instagramPosts?: InstagramPost[];
+  instagramStories?: InstagramStory[];
+  instagramReels?: InstagramReel[];
+  instagramVerified?: boolean;
+  instagramNpcFollowers?: string[];
+  instagramFollowing?: string[];
+  instagramFollowedBackEvents?: string[];
+  spotifyFollowers?: number;
+  videos: Video[];
+  youtubeStoreUnlocked: boolean;
+  appleMusicBgColor?: string;
+  appleMusicNameFont?: string;
+  appleMusicNameStyle?: string;
+  appleMusicProfileVideoUrl?: string;
+  appleMusicPlaylists?: AppleMusicPlaylist[];
+  recurringExpenses?: { id: string; name: string; cost: number; type: "monthly" | "weekly" }[];
+  merch: MerchProduct[];
+  merchStoreBanner: string | null;
+  independentNameChanges?: number;
+  relationships?: Relationship[];
+  grammyBanner?: string;
+  oscarBanner?: string;
+  goldenGlobeBanner?: string;
+  inbox: Email[];
+  redditPosts?: RedditPost[];
+  streamsThisMonth: number;
+  viewsThisQuarter: number;
+  subsThisQuarter: number;
+  promotions: Promotion[];
+  performedGigThisWeek: boolean;
+  contract: Contract | null;
+  contractHistory: Contract[];
+  labelSubmissions: LabelSubmission[];
+  customLabels: CustomLabel[];
+  artistImages: any[]; // legacy string[], now XMedia[]
+  coachella?: {
+    year: number;
+    status:
+      | "none"
+      | "invited"
+      | "submitted"
+      | "headliner"
+      | "mid"
+      | "small"
+      | "opener";
+    openingFor?: string;
+    payoutSize?: number;
+    stage?: string;
+    setlist?: string[];
+  };
+  artistVideoThumbnails: any[]; // legacy string[], now XMedia[]
+  paparazziPhotos: PaparazziPhoto[];
+  tourPhotos: string[];
+  tours: Tour[];
+  pastRedCarpetLooks: RedCarpetLook[];
+  streamsRemovedThisWeek?: number;
+  manager: {
+    id: string;
+    contractEndDate: GameDate;
+    autoDistributeAscap?: boolean;
+    autoSubmitAwards?: boolean;
+    autoSubmitCoachella?: boolean;
+    autoMakeOfficialAudio?: boolean;
+    autoDistributeFreeSongsToAscap?: boolean;
+    autoGigRegion?: "Random" | "US" | "Canada" | "UK" | "Latin America" | "Asia" | "Africa";
+  } | null;
+  requestedPromoInterview?: boolean;
+  lastPushToItunesWeek?: number;
+  lastPushedSongId?: string;
+  mySpaceData?: {
+    profileSongId?: string;
+    blogPosts: { title: string; content: string; year: number; week: number }[];
+    bulletins: { content: string; year: number; week: number }[];
+    feedPosts?: MySpaceFeedPost[];
+    mood?: string;
+    generalInterests?: string;
+    musicInterests?: string;
+    profileViews?: number;
+    top8Friends?: { id: string; name: string; image: string }[];
+  };
+  securityTeamId: string | null;
+  xUsers: XUser[];
+  selectedPlayerXUserId?: string;
+  xPosts: XPost[];
+  xUnreadMentions?: any;
+  xChats: XChat[];
+  xTrends: XTrend[];
+  xFollowingIds: string[];
+  xSuspensionStatus: XSuspensionStatus | null;
+  // Spotify for Artists Stats
+  followers: number;
+  isSpotifyVerified?: boolean;
+  saves: number;
+  artistPick: {
+    itemId: string;
+    itemType: "song" | "release";
+    message: string;
+  } | null;
+  listeningNow: number;
+  streamsHistory: { date: GameDate; streams: number }[];
+  firstChartEntry?: { songTitle: string; rank: number; date: GameDate } | null;
+  hasEarnedFirstSoloHot100?: boolean;
+  hasEarnedFirstBillboard200No1?: boolean;
+  hasEarnedFourBillboard200No1s?: boolean;
+  hasEarnedFourHot100No1s?: boolean;
+  hasEarnedFourTop10SongsTweeted?: boolean;
+  billboard200NumberOneDebuts?: number;
+  numberOneHits?: number;
+  hasAimingFirstHot100Tweeted?: boolean;
+  hasEarnedFirstGrammyNomination?: boolean;
+  hasEarnedFirstHot100No1?: boolean;
+  debutSingleDate?: GameDate;
+  autoCertifications?: boolean;
+  playlistPlacements?: {
+    playlistId: string;
+    playlistName: string;
+    coverArt: string;
+    totalStreams: number;
+    songStreams: Record<string, number>;
+  }[];
+  // Red Mic Pro
+  redMicPro: RedMicProState;
+  customContributorImages?: Record<string, string>;
+  chartPredictionsSubscription?: boolean;
+  albumPredictionsUnlocked?: boolean;
+  salesBoost: number; // percentage
+  isGoldTheme: boolean;
+  // AMAs
+  amaHistory: AmaAward[];
+  hasSubmittedForAmaNewArtist: boolean;
+  // BRITs
+  britHistory: BritAward[];
+  hasWonBritRisingStar?: boolean;
+  hasSubmittedForBritNewArtist?: boolean;
+  hasSubmittedForBritRisingStar?: boolean;
+  britBanner?: string;
+  // GRAMMYs
+  grammyHistory: GrammyAward[];
+  hasSubmittedForBestNewArtist: boolean;
+  bestNewArtistSubmissionCount?: number;
+  hasBeenNominatedForBestNewArtist?: boolean;
+  // Oscars
+  oscarHistory: OscarAward[];
+  goldenGlobeHistory: GoldenGlobeAward[];
+  // OnlyFans
+  onlyfans: OnlyFansProfile | null;
+  fanWarStatus: { targetArtistName: string; weeksRemaining: number } | null;
+  // Soundtracks
+  soundtrackOfferCount: number;
+  offeredSoundtracks: Array<string>;
+  weeksUntilNextSoundtrackOffer?: number;
+  lastVogueOfferYear?: number;
+  voguePhotoshoots?: VoguePhotoshoot[];
+  weeksUntilNextFeatureOffer?: number;
+  signedBrandDeals?: string[];
+  activeBrandDeals?: { id: string; name: string; hashtag: string; brandImage: string; lastPostedWeek?: number }[];
+  brandDealViolations?: number;
+  activeBrandAmbassadorContract?: BrandAmbassadorContract | null;
+  activeSyncLicenses?: ActiveSyncLicense[];
+  availableMediaRequests?: SongMediaRequest[];
+  signedVideoGames?: string[];
+  kids?: Kid[];
+  pregnancy?: Pregnancy | null;
+  // Acting & IMDb
+  actingSkillLevel?: number;
+  actingClassesTaken?: number;
+  talentAgencyId?: string;
+  imdbProfile?: ImdbProfile;
+  actingRoles?: ActingRole[];
+  actingAuditions?: ActingAudition[];
+  yearlyIncomeForTax?: number;
+  taxPaidYear?: number;
+  activeActingOffer?: ActingOffer | null;
+  filmingGig?: (ActingRole & { remainingWeeks: number; weeklyEvents?: string[]; soundtrackCover?: string; soundtrackSongId?: string; pay?: number }) | null;
+  twitchStreams?: TwitchStreamSchedule[];
+  tvAndFilmProjects?: TvAndFilmProject[];
+  pendingFycPosts?: FycBannerData[];
+  fycBanners?: FycBannerData[];
+  businesses?: BusinessBrand[];
+  launchParties?: ProductLaunchParty[];
+}
+
+export type BusinessCategory =
+  | 'perfume'
+  | 'beauty'
+  | 'hair_care'
+  | 'shoes'
+  | 'fashion'
+  | 'skincare'
+  | 'accessories';
+
+export type ProductQualityTier = 'standard' | 'premium' | 'luxury';
+
+export interface BusinessProduct {
+  id: string;
+  name: string;
+  category: string;
+  description?: string;
+  imageUrl?: string;
+  qualityTier: ProductQualityTier;
+  unitCost: number;
+  price: number;
+  initialStock: number;
+  currentStock: number;
+  totalUnitsSold: number;
+  totalRevenue: number;
+  weeklyUnitsSold: number;
+  weeklyRevenue: number;
+  estimatedDemandScore: number;
+  customerRating: number;
+  reviewsCount: number;
+  launchDate: GameDate;
+}
+
+export interface BusinessBrand {
+  id: string;
+  artistId: string;
+  name: string;
+  legalName: string;
+  logoUrl?: string;
+  bannerUrl?: string;
+  category?: BusinessCategory;
+  categoryDisplayName?: string;
+  initialFunds: number;
+  treasuryFunds: number;
+  totalRevenue: number;
+  totalNetProfit: number;
+  llcStatus: 'pending' | 'approved';
+  llcWeeksRemaining: number;
+  llcFiledDate: GameDate;
+  llcApprovalDate?: GameDate;
+  hasLeaked?: boolean;
+  leakWeek?: number;
+  leakHeadline?: string;
+  brandHype: number;
+  activeMarketingCampaigns?: Array<{
+    id: string;
+    campaignType: string;
+    title: string;
+    cost: number;
+    launchedDate: GameDate;
+  }>;
+  products: BusinessProduct[];
+  createdAt: GameDate;
+}
+
+export interface ProductLaunchParty {
+  id: string;
+  businessId: string;
+  productId: string;
+  productName: string;
+  businessName: string;
+  productImageUrl?: string;
+  venueName: string;
+  city: string;
+  capacity: number;
+  ticketPrice: number;
+  performedSongTitle?: string;
+  performedSongId?: string;
+  date: GameDate;
+  ticketsSold: number;
+  ticketRevenue: number;
+  productUnitsSoldAtEvent: number;
+  productRevenueAtEvent: number;
+  totalRevenue: number;
+  cost: number;
+  netProfit: number;
+  hypeGenerated: number;
+}
+
+export interface FycSubmissionItem {
+  category: string;
+  itemName: string;
+  itemId?: string;
+}
+
+export interface FycBannerData {
+  id: string;
+  awardShow: 'AMAs' | 'BRITs' | 'GRAMMYs' | 'OSCARS' | 'Golden Globes';
+  awardShowTitle: string;
+  artistId: string;
+  artistName: string;
+  artistImage: string;
+  mainProjectName: string;
+  submissions: FycSubmissionItem[];
+  date: GameDate;
+  scheduledPostDate?: GameDate;
+}
+
+export interface RedCarpetLook {
+  id: string;
+  awardShow: string;
+  year: number;
+  imageUrl: string;
+}
+
+export interface GameState {
+  artists?: (Artist | Group)[];
+  customFeatures?: any;
+  timeMode?: "weekly" | "daily";
+  disableEncounters?: boolean;
+  disableLoadingScreens?: boolean;
+  spotifySnapshotStyle?: "normal" | "ugly" | "simplistic" | "fatha";
+  spotifySnapshotTimeframe?: "weekly" | "daily";
+  activeEncounter?: ActiveEncounter | null;
+  activeTmzPost?: XPost | null;
+  cloudSaveId?: string;
+  offlineMode?: boolean;
+  difficultyMode?: "easy" | "original" | "normal" | "hard" | "extreme";
+  careerMode: "solo" | "group" | null;
+  soloArtist: Artist | null;
+  group: Group | null;
+  activeArtistId: string | null;
+  extraPlayableArtists?: Artist[];
+  kalshiAlbumChance?: number;
+
+  artistsData: {
+    [artistId: string]: ArtistData;
+  };
+  spotifyPlaylists: SpotifyPlaylist[];
+  appleMusicEditorialPlaylists?: SpotifyPlaylist[];
+  podcasts?: Podcast[];
+
+  date: GameDate;
+  currentView: GameView;
+  activeTab: Tab;
+  activeYoutubeChannel: "artist" | "label" | "mtv";
+
+  npcs: NpcSong[];
+  npcAlbums: NpcAlbum[];
+  npcImages?: Record<string, string>;
+  soundtrackAlbums: SoundtrackAlbum[];
+  billboardHot100: ChartEntry[];
+  activeSuperstarHits?: Record<string, string[]>;
+  billboardHot100WeeklyArchive?: {
+    year: number;
+    week: number;
+    entries: { uniqueId: string; title: string; artist: string; coverArt: string; rank: number }[];
+  }[];
+  ukSinglesChartWeeklyArchive?: {
+    year: number;
+    week: number;
+    entries: { uniqueId: string; title: string; artist: string; coverArt: string; rank: number }[];
+  }[];
+  billboardBubblingUnder25?: ChartEntry[];
+  bubblingUnderHistory?: { [uniqueId: string]: number };
+  billboardTopAlbums: AlbumChartEntry[];
+  albumChartHistory: ChartHistory;
+  chartHistory: ChartHistory;
+  videoChartHistory: ChartHistory;
+  spotifyGlobal: ChartEntry[];
+  prevItunesChart?: { uniqueId: string; rank: number }[];
+  spotifyGlobalMusicVideos: VideoChartEntry[];
+  spotifyUS?: ChartEntry[];
+  spotifyCanada?: ChartEntry[];
+  spotifyUK?: ChartEntry[];
+  spotifyLatin?: ChartEntry[];
+  spotifyAsia?: ChartEntry[];
+  spotifyAfrica?: ChartEntry[];
+  hotPopSongs: ChartEntry[];
+  biggestSalesWeekByYear?: {
+    [year: number]: {
+      artist: string;
+      album: string;
+      sales: number;
+      coverArt: string;
+    };
+  };
+  mostNumberOneDebutsRecord?: { artist: string; count: number; image: string };
+  npcNumberOneDebuts?: Record<string, number>;
+  mostBillboard200NumberOneDebutsRecord?: { artist: string; count: number; image: string };
+  npcBillboard200NumberOneDebuts?: Record<string, number>;
+  hot100No1HitsThisDecade?: Record<string, number>;
+  b200No1AlbumsThisDecade?: Record<string, number>;
+  hotRapRnb: ChartEntry[];
+  electronicChart: ChartEntry[];
+  countryChart: ChartEntry[];
+  hotPopSongsHistory: ChartHistory;
+  hotRapRnbHistory: ChartHistory;
+  electronicChartHistory: ChartHistory;
+  countryChartHistory: ChartHistory;
+  radioOverallChart?: ChartEntry[];
+  radioFormatCharts?: Record<string, ChartEntry[]>;
+  radioPopChart?: ChartEntry[];
+  radioChrChart?: ChartEntry[];
+  radioAcChart?: ChartEntry[];
+  radioHotAcChart?: ChartEntry[];
+  radioCountryChart?: ChartEntry[];
+  radioClassicHitsChart?: ChartEntry[];
+  radioClassicRockChart?: ChartEntry[];
+  radioActiveRockChart?: ChartEntry[];
+  radioAltRockChart?: ChartEntry[];
+  radioAaaChart?: ChartEntry[];
+  radioUrbanChart?: ChartEntry[];
+  radioUrbanAcChart?: ChartEntry[];
+  radioRhythmicChart?: ChartEntry[];
+  radioAdultHitsChart?: ChartEntry[];
+  radioLatinChart?: ChartEntry[];
+  radioChristmasChart?: ChartEntry[];
+  ukSinglesChart?: ChartEntry[];
+  ukSinglesChartHistory?: ChartHistory;
+  ukAlbumsChart?: AlbumChartEntry[];
+  ukAlbumsChartHistory?: ChartHistory;
+  spotifyNewEntries: number;
+  podcastCharts?: Podcast[];
+  selectedVideoId: string | null;
+  selectedReleaseId: string | null;
+  selectedSoundtrackId: string | null;
+  activeSubmissionId: string | null;
+  activeGeniusOffer: { songId: string; emailId: string } | null;
+  activeOnTheRadarOffer: { songId: string; emailId: string } | null;
+  activeTrshdOffer: { songId: string; emailId: string } | null;
+  activeEventInvitation: {
+    emailId: string;
+    eventName: string;
+    eventType: string;
+    hostName?: string;
+    associatedSoundtrack?: string;
+  } | null;
+  activeInterviewOffer?: {
+    releaseId: string;
+    interviewType: "magazine" | "newspaper" | "tv";
+    outletName: string;
+    emailId: string;
+  } | null;
+  activeFallonOffer: {
+    releaseId: string;
+    offerType: "performance" | "interview" | "both";
+    emailId: string;
+    step?: "performance" | "interview";
+  } | null;
+  activeSoundtrackOffer: { albumTitle: string; emailId: string } | null;
+  activeFifaOffer: { emailId: string; collabs: string[] } | null;
+  fifaSingleScheduled?: { week: number; year: number; title: string; coverArt: string; collabs: string[] };
+  activeFeatureOffer: {
+    npcArtistName: string;
+    payout: number;
+    songQuality: number;
+    promotion?: { name: string; durationWeeks: number };
+    emailId: string;
+  } | null;
+  activeFeatureVideoOffer: {
+    songId: string;
+    npcArtistName: string;
+    emailId: string;
+  } | null;
+  selectedXUserId: string | null;
+  selectedXChatId: string | null;
+  contractRenewalOffer: {
+    labelId: string;
+    isCustom?: boolean;
+    artistId: string;
+  } | null;
+  activeTourId: string | null;
+  viewingPastLabelId: string | null;
+  activeVogueOffer: {
+    magazine: "Vogue" | "Vogue Korea" | "Vogue Italy";
+    emailId: string;
+  } | null;
+  // VMAs
+  vmaSubmissions?: {
+    artistId: string;
+    category: string;
+    itemId: string;
+    itemName: string;
+  }[];
+  vmaCurrentYearNominations?: any[] | null;
+  activeVmaRedCarpetOffer?: { emailId: string } | null;
+  activeVmaPerformanceOffer?: { emailId: string } | null;
+  // AMAs
+  amaSubmissions: {
+    artistId: string;
+    category: AmaCategoryName;
+    itemId: string;
+    itemName: string;
+  }[];
+  amaCurrentYearNominations: AmaCategory[] | null;
+  activeAmaPerformanceOffer: { emailId: string } | null;
+  activeAmaRedCarpetOffer: { emailId: string } | null;
+  // BRITs
+  britSubmissions: {
+    artistId: string;
+    category: BritCategoryName;
+    itemId: string;
+    itemName: string;
+  }[];
+  britCurrentYearNominations: BritCategory[] | null;
+  activeBritPerformanceOffer: { emailId: string } | null;
+  activeBritRedCarpetOffer: { emailId: string } | null;
+  activePromoInterviewOffer: {
+    emailId: string;
+    source: PromoInterviewSource;
+  } | null;
+  // Custom Award Show
+  customAwardShow?: {
+    name: string;
+    submissionWeek: number;
+    nominationWeek: number;
+    ceremonyWeek: number;
+    categories: {
+      id: string;
+      name: string;
+      eligibility: "album" | "song" | "artist";
+      genreFilter?: string;
+    }[];
+  };
+  customAwardSubmissions?: {
+    artistId: string;
+    categoryId: string;
+    itemId: string;
+    itemName: string;
+  }[];
+  customAwardNominations?: {
+    categoryId: string;
+    nominees: { itemId: string; itemName: string; artistName: string; isWinner?: boolean; points?: number; }[];
+  }[] | null;
+  // GRAMMYs
+  grammySubmissions: {
+    artistId: string;
+    category: GrammyAward["category"];
+    itemId: string;
+    itemName: string;
+    isNpcFeatureSubmission?: boolean;
+    leadArtistName?: string;
+  }[];
+  grammyCurrentYearNominations: GrammyCategory[] | null;
+  activeGrammyPerformanceOffer: { emailId: string } | null;
+  activeGrammyRedCarpetOffer: { emailId: string } | null;
+  // Oscars
+  
+  goldenGlobeSubmissions: {
+    artistId: string;
+    category: GoldenGlobeAward["category"];
+    itemId: string;
+    itemName: string;
+  }[];
+  goldenGlobeCurrentYearNominations: GoldenGlobeCategory[] | null;
+
+  oscarSubmissions: {
+    artistId: string;
+    category: "Best Original Song" | "Best Actor/Actress" | "Best Supporting Actor/Actress" | "Best Voice Actor/Actress";
+    itemId: string;
+    itemName: string;
+  }[];
+  oscarCurrentYearNominations: OscarCategory[] | null;
+  activeOscarPerformanceOffer: { emailId: string } | null;
+  activeOscarRedCarpetOffer: { emailId: string } | null;
+  activeMoviePremiereOffer: { roleId?: string; roleTitle?: string; emailId?: string; } | null;
+  allPlayerArtists?: (Artist | Group)[];
+  activeGoldenGlobeRedCarpetOffer: { emailId: string } | null;
+  pendingFycPosts?: FycBannerData[];
+  fycBanners?: FycBannerData[];
+}
+
+export interface EncounterChoice {
+  label: string;
+  tweetTemplate?: string;
+  authorName?: string;
+  isTMZ?: boolean;
+  publicImageEffect: number;
+  hypeEffect: number;
+  popularityEffect?: number;
+  moneyEffect?: number;
+  tourAction?: { action: "CANCEL"; tourId: string };
+}
+
+export interface ActiveEncounter {
+  id: string;
+  text: string;
+  requiresImage: boolean;
+  choices: EncounterChoice[];
+}
+
+export type GameAction =
+  | { type: "FILE_BUSINESS_LLC"; payload: { name: string; initialFunds: number } }
+  | { type: "SETUP_BUSINESS_BRAND"; payload: { businessId: string; logoUrl: string; category: BusinessCategory; products: Array<{ name: string; category: string; description?: string; imageUrl?: string; qualityTier: ProductQualityTier; unitCost: number; price: number; initialStock: number; estimatedDemandScore: number }> } }
+  | { type: "RESTOCK_BUSINESS_PRODUCT"; payload: { businessId: string; productId: string; additionalStock: number } }
+  | { type: "LAUNCH_BUSINESS_PRODUCT"; payload: { businessId: string; product: { name: string; category: string; description?: string; imageUrl?: string; qualityTier: ProductQualityTier; unitCost: number; price: number; initialStock: number; estimatedDemandScore: number } } }
+  | { type: "WITHDRAW_BUSINESS_FUNDS"; payload: { businessId: string; amount: number } }
+  | { type: "MARKET_BUSINESS"; payload: { businessId: string; campaignType: 'social_blitz' | 'influencer_gift' | 'popup_store' | 'vogue_ad'; cost: number } }
+  | { type: "UPDATE_BUSINESS_PRODUCT_IMAGE"; payload: { businessId: string; productId: string; imageUrl: string } }
+  | { type: "UPDATE_BUSINESS_BANNER"; payload: { businessId: string; bannerUrl: string } }
+  | { type: "UPDATE_BUSINESS_PRODUCT_PRICE"; payload: { businessId: string; productId: string; price: number } }
+  | { type: "DELETE_BUSINESS_PRODUCT"; payload: { businessId: string; productId: string } }
+  | { type: "HOST_PRODUCT_LAUNCH_PARTY"; payload: { businessId: string; productId: string; venue: { name: string; city: string; capacity: number; cost: number }; ticketPrice: number; performedSongId?: string } }
+  | { type: "TOGGLE_AUTO_CERTIFICATIONS"; payload?: { enabled?: boolean } }
+  | { type: "MANUAL_CLAIM_CERTIFICATION"; payload: { itemId: string; isAlbum: boolean } }
+  | { type: "DELAY_SCHEDULED_RELEASE"; payload: { submissionId: string; delayWeeks: number } }
+  | { type: "UPDATE_ARTIST_FUNDS"; payload: number }
+  | { type: "UPDATE_VIDEO"; payload: { id: string; updates: Partial<Video> } }
+  | { type: "LAUNCH_CRYPTO_COIN"; payload: { name: string; ticker: string; logo: string; launchPrice: number; totalSupply: number; cost: number; playerPercent?: number } }
+  | { type: "BUY_CRYPTO"; payload: { amount: number; cost: number } }
+  | { type: "SELL_CRYPTO"; payload: { amount: number; revenue: number } }
+  | { type: "BURN_CRYPTO"; payload: { amount: number } }
+  | { type: "MARKET_CRYPTO"; payload: { cost: number; platform: "x" } }
+  | { type: "TOGGLE_CRYPTO_UTILITY"; payload: { utility: "merch" | "tickets" | "fanClub" | "voting" } }
+  | { type: "RUGPULL_CRYPTO" }
+  | { type: "UPDATE_CUSTOM_IMAGES"; payload: Record<string, string> }
+  | { type: "UPDATE_RELEASE_REVIEW_SCORE"; payload: { releaseId: string; score: number } }
+  | { type: "SHRED_CONTRACT" }
+  | { type: "SET_CAREER_STAGE"; payload: { stage: 'neutral' | 'flop' | 'smash'; artistId?: string } }
+  | { type: "TOGGLE_FLOP_ERA_LOCK"; payload?: { artistId?: string } }
+  | { type: "TOGGLE_ERA_LOCK"; payload?: { artistId?: string } }
+  | { type: "CREATE_CUSTOM_AWARD_SHOW"; payload: { customAwardShow: NonNullable<GameState['customAwardShow']> } }
+  | { type: "ADD_CUSTOM_FEATURE"; payload: { name: string; cost: number } }
+  | { type: "REMOVE_CUSTOM_FEATURE"; payload: { name: string } }
+  | { type: "EDIT_X_PROFILE"; payload: { userId: string; name: string; bio: string; headerImage?: string; avatar?: string } }
+  | { type: "SUBMIT_CUSTOM_AWARDS"; payload: { submissions: NonNullable<GameState['customAwardSubmissions']> } }
+  | { type: "JUDGE_CUSTOM_AWARDS"; payload: { nominations: NonNullable<GameState['customAwardNominations']> } }
+  | { type: "SET_ACTIVE_TMZ_POST"; payload: XPost | null }
+  | {
+      type: "RESOLVE_ENCOUNTER";
+      payload: { choice: EncounterChoice; imageUrl: string };
+    }
+  | { type: "TOGGLE_ENCOUNTERS" }
+  | { type: "TOGGLE_LOADING_SCREENS" }
+  | { type: "TOGGLE_SPOTIFY_SNAPSHOT_STYLE"; payload: "normal" | "ugly" | "simplistic" }
+  | { type: "SET_SPOTIFY_SNAPSHOT_TIMEFRAME"; payload: "weekly" | "daily" }
+  | { type: "TOGGLE_SPOTIFY_SNAPSHOT_TIMEFRAME"; payload?: "weekly" | "daily" }
+  | {
+      type: "START_SOLO_GAME";
+      payload: {
+        artist: Artist;
+        startYear: number;
+        startWeek?: number;
+        difficultyMode?: "easy" | "original" | "normal" | "hard" | "extreme";
+        timeMode?: "weekly" | "daily";
+      };
+    }
+  | {
+      type: "START_GROUP_GAME";
+      payload: {
+        group: Group;
+        startYear: number;
+        startWeek?: number;
+        difficultyMode?: "easy" | "original" | "normal" | "hard" | "extreme";
+        timeMode?: "weekly" | "daily";
+      };
+    }
+  | { type: "SUBSCRIBE_CHART_PREDICTIONS"; payload: { cost: number } }
+  | { type: "UNLOCK_ALBUM_PREDICTIONS"; payload: { cost: number } }
+  | {
+      type: "RELEASE_ITUNES_VERSION";
+      payload: { songId: string; title: string; coverArt: string };
+    }
+  | { type: "CHANGE_VIEW"; payload: GameView }
+  | { type: "SUBMIT_COACHELLA"; payload: { emailId: string } }
+  | { type: "SET_COACHELLA_SETLIST"; payload: { songIds: string[]; emailId?: string } }
+  | { type: "CHANGE_TAB"; payload: Tab }
+  | { type: "SWITCH_YOUTUBE_CHANNEL"; payload: "artist" | "label" | "mtv" }
+  | { type: "APPLY_YOUTUBE_PARTNER" }
+  | { type: "SUBMIT_MTV_VIDEO"; payload: { video: Video; cost: number; rotation?: "heavy" | "buzzworthy" | "medium" } }
+  | { type: "VOTE_TRL_VIDEO"; payload: { videoId: string } }
+  | { type: "CHANGE_ACTIVE_ARTIST"; payload: string }
+  | {
+      type: "TRANSFER_MONEY";
+      payload: { fromId: string; toId: string; amount: number };
+    }
+  | { type: "PROGRESS_WEEK" }
+  | { type: "SYNC_ONLINE_CHARTS"; payload: any }
+  | { type: "SET_GAME_DATE"; payload: GameDate }
+  | { type: "RECORD_SONG"; payload: { song: Song; cost: number } }
+  | { type: "CREATE_REMIX_PACK"; payload: { songs: Song[]; cost: number } }
+  | { type: "RELEASE_PROJECT"; payload: { release: Release } }
+  | { type: "CREATE_LIVE_ALBUM"; payload: { tourId: string, coverArt: string } }
+  | { type: "RELEASE_TOUR_DOCUMENTARY"; payload: { tourId: string, coverUrl: string } }
+  | {
+      type: "ADD_REVIEW";
+      payload: {
+        releaseId: string;
+        review: Review;
+        cost: number;
+        artistId: string;
+      };
+    }
+  | { type: "CREATE_VIDEO"; payload: { video: Video; cost: number } }
+  | { type: "ADD_MERCH"; payload: { item: MerchProduct; cost?: number } }
+  | { type: "BATCH_ADD_MERCH"; payload: { items: MerchProduct[]; totalCost: number } }
+  | {
+      type: "RESTOCK_MERCH";
+      payload: { id: string; amount: number; cost?: number };
+    }
+  | { type: "UPDATE_MERCH_PRICE"; payload: { id: string; price: number } }
+  | { type: "REMOVE_MERCH"; payload: { id: string } }
+  | { type: "UPDATE_MERCH_BANNER"; payload: string }
+  | { type: "UPDATE_SNAPSHOT_BANNER"; payload: { releaseId: string; bannerUrl: string } }
+  | { type: "UPDATE_GRAMMY_BANNER"; payload: string }
+  | { type: "UPDATE_OSCAR_BANNER"; payload: string }
+  | { type: "UPDATE_GOLDEN_GLOBE_BANNER"; payload: string }
+  | { type: "UPDATE_YOUTUBE_BANNER"; payload: { banner: string } }
+  | { type: "MARK_INBOX_READ" }
+  | { type: "DELETE_ALL_EMAILS" }
+  | { type: "DECLINE_GOLDEN_GLOBE_RED_CARPET"; payload: { emailId: string } }
+  | { type: "TAKE_DOWN_SONG"; payload: { songId: string } }
+  | { type: "TAKE_DOWN_RELEASE"; payload: { releaseId: string } }
+  | { type: "UPDATE_IMDB_PROFILE"; payload: { bio: string; birthDate: string } }
+  | { type: "REQUEST_ACTING_GIG"; payload: { type: "Movie" | "TV Show" | "Voice Acting" } }
+  | { type: "ACCEPT_ACTING_OFFER"; payload: { offerId: string; offer?: any; roleName?: string } }
+  | { type: "DECLINE_ACTING_OFFER"; payload: { offerId: string } }
+  | { type: "SET_ACTING_TRAILER_URL"; payload: { roleId: string; trailerUrl: string } }
+  | { type: "SET_ACTING_COVER_URL"; payload: { roleId: string; coverUrl: string } }
+  | { type: "ATTEND_ACTING_PREMIERE"; payload: { roleId: string } }
+  | { type: "DECLINE_ACTING_PREMIERE"; payload: { roleId: string } }
+  | { type: "ACCEPT_MOVIE_PREMIERE_RED_CARPET"; payload: { emailId: string, lookUrl: string, location?: string } }
+  | { type: "SIGN_TALENT_AGENCY"; payload: { agencyId: string } }
+  | { type: "LEAVE_TALENT_AGENCY" }
+  | { type: "ATTEND_ACTING_CLASS"; payload: { tier: 'basic' | 'masterclass' } }
+  | { type: "AUDITION_FOR_ROLE"; payload: { auditionId: string; choice: 'comedy' | 'drama' | 'action' | 'method' } }
+  | { type: "START_FILMING_WEEK_EVENT"; payload: { roleId: string; choice: string } }
+  | { type: "HOST_PRESS_JUNKET"; payload: { roleId: string; outlet: 'GQ' | 'Variety' | 'Hollywood Reporter'; answerChoice: string } }
+  | { type: "RECORD_MOVIE_SOUNDTRACK"; payload: { roleId: string; songId: string; soundtrackCover?: string } }
+  | { type: "REFRESH_ACTING_AUDITIONS" }
+  | {
+      type: "TOGGLE_APPLE_MUSIC_EXPANDED_COVER";
+      payload: { releaseId: string; enabled: boolean };
+    }
+  | {
+      type: "SET_APPLE_MUSIC_ANIMATED_COVER";
+      payload: { releaseId: string; animatedCoverUrl: string };
+    }
+  | {
+      type: "MARK_APPLE_MUSIC_ESSENTIAL";
+      payload: { releaseId: string; reviewText: string; isEssential?: boolean };
+    }
+  | {
+      type: "UPDATE_APPLE_MUSIC_ARTIST_SETTINGS";
+      payload: { bgColor?: string; nameFont?: string; nameStyle?: string; profileVideoUrl?: string };
+    }
+  | {
+      type: "CREATE_APPLE_MUSIC_PLAYLIST";
+      payload: {
+        title: string;
+        playlistType: 'setlist' | 'playlist';
+        curatorText?: string;
+        bannerColor?: string;
+        customCoverUrl?: string;
+        songIds: string[];
+        badgeText?: string;
+      };
+    }
+  | {
+      type: "UPDATE_APPLE_MUSIC_PLAYLIST";
+      payload: {
+        playlistId: string;
+        title?: string;
+        playlistType?: 'setlist' | 'playlist';
+        curatorText?: string;
+        bannerColor?: string;
+        customCoverUrl?: string;
+        songIds?: string[];
+        badgeText?: string;
+      };
+    }
+  | {
+      type: "DELETE_APPLE_MUSIC_PLAYLIST";
+      payload: { playlistId: string };
+    }
+  | {
+      type: "UPDATE_APPLE_MUSIC_EDITORIAL_PLAYLIST_COVER";
+      payload: { playlistId: string; coverArt: string };
+    }
+  | {
+      type: "UPDATE_ITUNES_PRICE";
+      payload: { songId: string; newPriceStr: string };
+    }
+  | { type: "BUY_BACK_SONG"; payload: { songId: string; cost: number } }
+  | { type: "BUY_BACK_RELEASE"; payload: { releaseId: string; cost: number } }
+  | { type: "UPLOAD_TO_STREAMING"; payload: { songId: string; cost: number } }
+  | { type: "REMASTER_SONG"; payload: { songId: string; qualityBoost: number; cost: number } }
+  | {
+      type: "SELL_RIGHTS";
+      payload: {
+        itemType: "song" | "release";
+        id: string;
+        percent: number;
+        labelId: string;
+        value: number;
+      };
+    }
+  | {
+      type: "BUY_RIGHTS";
+      payload: {
+        itemType: "song" | "release";
+        id: string;
+        percentToBuy: number;
+        cost: number;
+      };
+    }
+  | { type: "START_PROMOTION"; payload: { promotion: Promotion } }
+  | { type: "CANCEL_PROMOTION"; payload: { promotionId: string } }
+  | { type: "SELECT_VIDEO"; payload: string | null }
+  | { type: "SELECT_RELEASE"; payload: string | null }
+  | { type: "PERFORM_GIG"; payload: { cash: number; hype: number; region?: string } }
+  | { type: "SIGN_CONTRACT"; payload: { contract: Contract } }
+  | { type: "END_CONTRACT" }
+  | {
+      type: "SIGN_NPC_TO_LABEL";
+      payload: {
+        npcName: string;
+        advance: number;
+        royaltyRate: number;
+        durationWeeks: number;
+      };
+    }
+  | { type: "RELEASE_NPC_FROM_LABEL"; payload: { npcName: string } }
+  | { type: "SUBMIT_TO_LABEL"; payload: { submission: LabelSubmission } }
+  | {
+      type: "EDIT_SUBMISSION_DATE";
+      payload: { submissionId: string; newDate: GameDate };
+    }
+  | { type: "GO_TO_LABEL_PLAN"; payload: { submissionId: string } }
+  | {
+      type: "PLAN_LABEL_RELEASE";
+      payload: {
+        submissionId: string;
+        singles: { songId: string; releaseDate: GameDate; singleType?: 'lead' | 'standalone' | 'interlude'; eraImages?: string[]; }[];
+        projectReleaseDate: GameDate;
+        projectSingleType?: 'lead' | 'standalone' | 'interlude';
+        projectEraImages?: string[];
+      };
+    }
+  | {
+      type: "UPLOAD_BILLIONS_CLUB_IMAGE";
+      payload: { emailId: string; songId: string; imageUrl: string };
+    }
+  | {
+      type: "ACCEPT_GENIUS_OFFER";
+      payload: { songId: string; emailId: string };
+    }
+  | { type: "CREATE_GENIUS_INTERVIEW"; payload: { video: Video } }
+  | { type: "CANCEL_GENIUS_OFFER" }
+  | {
+      type: "ACCEPT_ONTHERADAR_OFFER";
+      payload: { songId: string; emailId: string };
+    }
+  | { type: "CREATE_ONTHERADAR_PERFORMANCE"; payload: { video: Video } }
+  | { type: "CANCEL_ONTHERADAR_OFFER" }
+  | { type: "ACCEPT_TRSHD_OFFER"; payload: { songId: string; emailId: string } }
+  | { type: "CREATE_TRSHD_PERFORMANCE"; payload: { video: Video } }
+  | { type: "CANCEL_TRSHD_OFFER" }
+  | {
+      type: "ACCEPT_FALLON_OFFER";
+      payload: {
+        releaseId: string;
+        offerType: "performance" | "interview" | "both";
+        emailId: string;
+      };
+    }
+  | { type: "CREATE_FALLON_VIDEO"; payload: { video: Video; songId?: string } }
+  | { type: "CANCEL_FALLON_OFFER" }
+  | { type: "ADD_ARTIST_IMAGE"; payload: string }
+  | { type: "DELETE_ARTIST_IMAGE"; payload: string }
+  | { type: "DELETE_INSTAGRAM_POST"; payload: { postId: string } }
+  | { type: "DELETE_INSTAGRAM_REEL"; payload: { reelId: string } }
+  | { type: "DELETE_TIKTOK_VIDEO"; payload: { videoId: string } }
+  | { type: "SET_APP_ORDER"; payload: { appOrder: string[] } }
+  | { type: "ADD_ARTIST_VIDEO"; payload: string }
+  | { type: "DELETE_ARTIST_VIDEO"; payload: string }
+  | { type: "ADD_PAPARAZZI_PHOTO"; payload: { photo: PaparazziPhoto } }
+  | { type: "DELETE_PAPARAZZI_PHOTO"; payload: string }
+  | {
+      type: "ANSWER_POPBASE_QUESTION";
+      payload: { emailId: string; answer: string };
+    }
+  | { type: "COMBINE_REMIXES"; payload: { originalSongId: string } }
+  | {
+      type: "CHANGE_STAGE_NAME";
+      payload: { newName: string; cost?: number; contractId?: string };
+    }
+  | {
+      type: "POST_ON_X";
+      payload: {
+        content: string;
+        image?: string;
+        postType: "normal" | "fanWar" | "push" | "announce" | "endorse" | "market_crypto" | string;
+        targetId?: string;
+        songId?: string;
+        quoteOf?: XPost;
+        announceItem?: any;
+        poll?: any;
+      };
+    }
+  | {
+      type: "POST_ON_MYSPACE";
+      payload: {
+        type: "bulletin" | "blog" | "profile_song" | "push" | "feed_post" | "like_feed_post" | "comment_feed_post";
+        content?: string;
+        songId?: string;
+        postId?: string;
+        mood?: string;
+        image?: string;
+        nowPlaying?: { title: string; artist: string };
+      };
+    }
+  | {
+      type: "UPDATE_MYSPACE_PROFILE";
+      payload: {
+        mood?: string;
+        generalInterests?: string;
+        musicInterests?: string;
+        top8Friends?: { id: string; name: string; image: string }[];
+      };
+    }
+  | {
+      type: "REPLY_TO_X_POST";
+      payload: {
+        postId: string;
+        content: string;
+        image?: string;
+        authorId: string;
+      };
+    }
+  | { type: "PIN_X_POST"; payload: { postId: string } }
+  | { type: "UNPIN_X_POST"; payload: { postId: string } }
+  | { type: "TOGGLE_HIGHLIGHT_X_POST"; payload: { postId: string } }
+  | { type: "REPOST_X_POST"; payload: { postId: string } }
+  | { type: "DELETE_X_POST"; payload: { postId: string } }
+  | { type: "VIEW_X_PROFILE"; payload: string }
+  | {
+      type: "CREATE_X_ACCOUNT";
+      payload: { username: string; name: string; avatar: string; bio?: string };
+    }
+  | {
+      type: "BUY_X_VERIFICATION";
+      payload: { accountId: string; tier: "blue" | "gold"; cost: number };
+    }
+  | { type: "REQUEST_SPOTIFY_VERIFICATION" }
+  | {
+      type: "REVEAL_SINGLE_TRACK_COUNTDOWN";
+      payload: { submissionId: string; songId: string };
+    }
+  | {
+      type: "REVEAL_TRACKLIST";
+      payload: {
+        submissionId: string;
+        tracklistImageUrl?: string;
+        tracklist?: string[];
+        albumTitle?: string;
+      };
+    }
+  | {
+      type: "UPLOAD_COUNTDOWN_IMAGE";
+      payload: { submissionId: string; imageUrl: string };
+    }
+  | {
+      type: "START_X_SPACE";
+      payload: { topic: string; recordSpace: boolean; enableVideo: boolean };
+    }
+  | { type: "END_X_SPACE"; payload: undefined }
+  | {
+      type: "PROMOTE_SONG_ON_X_SPACE";
+      payload: { songId: string; listeners: number };
+    }
+  | { type: "DELETE_X_ACCOUNT"; payload: { accountId: string } }
+  | { type: "SELECT_X_ACCOUNT"; payload: { accountId: string } }
+  | { type: "VIEW_X_CHAT"; payload: string }
+  | { type: "FOLLOW_X_USER"; payload: string }
+  | { type: "UNFOLLOW_X_USER"; payload: string }
+  | { type: "SEND_X_MESSAGE"; payload: { chatId: string; message: XMessage } }
+  | { type: "APPEAL_X_SUSPENSION" }
+  | {
+      type: "ENABLE_X_SUBSCRIPTIONS";
+      payload: { price: number; perks: string[] };
+    }
+  | { type: "ENABLE_X_REVENUE_SHARING" }
+  | {
+      type: "SET_ARTIST_PICK";
+      payload: {
+        itemId: string;
+        itemType: "song" | "release";
+        message: string;
+      };
+    }
+  | { type: "PITCH_TO_PLAYLIST"; payload: { songId: string } }
+  | { type: "PITCH_TO_APPLE_MUSIC_PLAYLIST"; payload: { songId: string } }
+  | {
+      type: "CREATE_CUSTOM_LABEL";
+      payload: { label: CustomLabel; cost: number; membersToSign: string[] };
+    }
+  | {
+      type: "SET_EXCLUSIVE_LICENSE";
+      payload: {
+        customLabelId: string;
+        exclusiveLicenseId: Label["id"] | undefined;
+      };
+    }
+  | { type: "DELETE_SONG"; payload: { songId: string } }
+  | { type: "TOGGLE_VAULT_SONG"; payload: { songId: string } }
+  | { type: "CANCEL_SCHEDULED_RELEASE"; payload: { submissionId: string } }
+  | { type: "DISMISS_LABEL_SUBMISSION"; payload: { submissionId: string } }
+  | { type: "GO_TO_ALBUM_PROMO"; payload: { submissionId: string } }
+  | {
+      type: "LAUNCH_COUNTDOWN_PAGE";
+      payload: { submissionId: string; cost: number };
+    }
+  | {
+      type: "REQUEST_GENIUS_PROMO";
+      payload: { submissionId: string; songId: string; cost: number };
+    }
+  | {
+      type: "REQUEST_FALLON_PROMO";
+      payload: { submissionId: string; songId: string; cost: number };
+    }
+  | { type: "START_HIATUS" }
+  | { type: "ANNOUNCE_HIATUS" }
+  | { type: "END_HIATUS_COMEBACK"; payload?: { isGood: boolean } }
+  | { type: "RESET_GAME" }
+  | { type: "LOAD_GAME"; payload: GameState }
+  | {
+      type: "UNLOCK_RED_MIC_PRO";
+      payload: { type: "yearly" | "lifetime" | "code"; cost: number };
+    }
+  | {
+      type: "UPDATE_SONG_QUALITY";
+      payload: { songId: string; newQuality: number };
+    }
+  | {
+      type: "UPDATE_SONG_TRAIT";
+      payload: { songId: string; newTrait: any };
+    }
+  | { type: "SET_MONEY"; payload: { newAmount: number } }
+  | { type: "TOGGLE_GOLD_THEME"; payload: { enabled: boolean } }
+  | { type: "SET_SALES_BOOST"; payload: { newBoost: number } }
+  | {
+      type: "UPDATE_ABOUT_SONG_TEXT";
+      payload: { songId: string; text: string };
+    }
+  | {
+      type: "UPDATE_WIKIPEDIA_SUMMARY";
+      payload: { releaseId: string; summary: string };
+    }
+  | {
+      type: "UPDATE_RELEASE_WIKIPEDIA";
+      payload: {
+        releaseId: string;
+        summary?: string;
+        wikipediaSections?: Record<string, string>;
+        title?: string;
+        originalCoverArt?: string;
+        coverArt?: string;
+        coverArtHistory?: { url: string; year: number; caption?: string }[];
+        wikipediaCustomData?: {
+          title?: string;
+          recordedYears?: string;
+          recordedStudios?: string;
+          producers?: string;
+          label?: string;
+        };
+      };
+    }
+  | { type: "TOGGLE_OFFLINE_MODE" }
+  | { type: "CHANGE_LOCATION"; payload: { location: "US" | "Canada" | "UK" | "Asia" | "Latin America" | "Africa" } }
+  | { type: "PRO_SIGN_LABEL"; payload: { labelId: Label["id"] } }
+  | { type: "GO_TO_GRAMMY_SUBMISSIONS"; payload: { emailId: string } }
+  | {
+      type: "SUBMIT_FOR_GRAMMYS";
+      payload: { submissions: GameState["grammySubmissions"]; emailId: string };
+    }
+  | { type: "ACCEPT_GRAMMY_PERFORMANCE"; payload: { emailId: string } }
+  | { type: "CREATE_GRAMMY_PERFORMANCE"; payload: { video: Video } }
+  | { type: "DECLINE_GRAMMY_PERFORMANCE"; payload: { emailId: string } }
+  | {
+      type: "ACCEPT_GRAMMY_RED_CARPET";
+      payload: { emailId: string; lookUrl: string };
+    }
+  | { type: "DECLINE_GRAMMY_RED_CARPET"; payload: { emailId: string } }
+  | { type: "GO_TO_AMA_SUBMISSIONS"; payload: { emailId: string } }
+  | {
+      type: "SUBMIT_FOR_AMAS";
+      payload: { submissions: GameState["amaSubmissions"]; emailId: string };
+    }
+  | { type: "ACCEPT_AMA_PERFORMANCE"; payload: { emailId: string } }
+  | { type: "CREATE_AMA_PERFORMANCE"; payload: { video: Video } }
+  | { type: "DECLINE_AMA_PERFORMANCE"; payload: { emailId: string } }
+  | {
+      type: "ACCEPT_AMA_RED_CARPET";
+      payload: { emailId: string; lookUrl: string };
+    }
+  | { type: "DECLINE_AMA_RED_CARPET"; payload: { emailId: string } }
+  | { type: "GO_TO_BRIT_SUBMISSIONS"; payload: { emailId: string } }
+  | {
+      type: "SUBMIT_FOR_BRITS";
+      payload: { submissions: GameState["britSubmissions"]; emailId: string };
+    }
+  | { type: "ACCEPT_BRIT_PERFORMANCE"; payload: { emailId: string } }
+  | { type: "CREATE_BRIT_PERFORMANCE"; payload: { video: Video } }
+  | { type: "DECLINE_BRIT_PERFORMANCE"; payload: { emailId: string } }
+  | {
+      type: "ACCEPT_BRIT_RED_CARPET";
+      payload: { emailId: string; lookUrl: string };
+    }
+  | { type: "DECLINE_BRIT_RED_CARPET"; payload: { emailId: string } }
+  | { type: "UPDATE_BRIT_BANNER"; payload: string }
+  | {
+      type: "ACCEPT_VMA_RED_CARPET";
+      payload: { emailId: string; lookUrl: string };
+    }
+  | { type: "DECLINE_VMA_RED_CARPET"; payload: { emailId: string } }
+  | { type: "GO_TO_OSCAR_SUBMISSIONS"; payload: { emailId: string } }
+  | {
+      type: "SUBMIT_FOR_OSCARS";
+      payload: { submissions: GameState["oscarSubmissions"]; emailId: string };
+    }
+  | { type: "ACCEPT_OSCAR_PERFORMANCE"; payload: { emailId: string } }
+  | { type: "CREATE_OSCAR_PERFORMANCE"; payload: { video: Video } }
+  | { type: "DECLINE_OSCAR_PERFORMANCE"; payload: { emailId: string } }
+  | {
+      type: "ACCEPT_OSCAR_RED_CARPET";
+      payload: { emailId: string; lookUrl: string };
+    }
+  | { type: "DECLINE_OSCAR_RED_CARPET"; payload: { emailId: string } }
+  | { type: "RENEW_CONTRACT" }
+  | { type: "GO_INDEPENDENT" }
+  | {
+      type: "UPDATE_ARTIST_IMAGE";
+      payload: { artistId: string; newImage: string };
+    }
+  | {
+      type: "UPDATE_CHART_HISTORY_IMAGE";
+      payload: { artistId?: string; image: string };
+    }
+  | {
+      type: "UPDATE_ARTIST_DATA";
+      payload: { artistId?: string; data: Partial<ArtistData> };
+    }
+  | { type: "UPDATE_ABOUT_PROFILE"; payload: { bio: string; images: string[] } }
+  | { type: "CREATE_ONLYFANS_PROFILE"; payload: { profile: OnlyFansProfile } }
+  | { type: "UPDATE_ONLYFANS_SETTINGS"; payload: { price: number } }
+  | {
+      type: "CREATE_INSTAGRAM_POST";
+      payload: { imageUrls: string[]; caption: string };
+    }
+  | {
+      type: "CREATE_INSTAGRAM_STORY";
+      payload: { imageUrl: string };
+    }
+  | {
+      type: "CREATE_INSTAGRAM_REEL";
+      payload: { videoUrl: string; caption: string };
+    }
+  | {
+      type: "EDIT_INSTAGRAM_PROFILE";
+      payload: { bio: string; link: string };
+    }
+  | {
+      type: "CREATE_INSTAGRAM_COMMUNITY";
+      payload: { name: string };
+    }
+  | {
+      type: "EDIT_INSTAGRAM_COMMUNITY";
+      payload: { name: string };
+    }
+  | {
+      type: "SEND_INSTAGRAM_CHANNEL_MESSAGE";
+      payload: {
+        text?: string;
+        imageUrl?: string;
+        post?: InstagramPost;
+        reel?: InstagramReel;
+      };
+    }
+  | {
+      type: "REACT_INSTAGRAM_CHANNEL_MESSAGE";
+      payload: {
+        messageId: string;
+        emoji: string;
+      };
+    }
+  | {
+      type: "DELETE_INSTAGRAM_CHANNEL_MESSAGE";
+      payload: {
+        messageId: string;
+      };
+    }
+  | {
+      type: "FINISH_INSTAGRAM_CHANNEL_REACTION_GROWTH";
+      payload: {
+        messageId: string;
+      };
+    }
+  | { type: "FOLLOW_INSTAGRAM_NPC"; payload: { npcName: string } }
+  | { type: "UNFOLLOW_INSTAGRAM_NPC"; payload: { npcName: string } }
+  | { type: "CREATE_ONLYFANS_POST"; payload: { post: OnlyFansPost } }
+  | {
+      type: "ACCEPT_ONLYFANS_REQUEST";
+      payload: { emailId: string; payout: number };
+    }
+  | {
+      type: "ACCEPT_FEATURE_VIDEO_OFFER";
+      payload: { songId: string; emailId: string; npcArtistName: string };
+    }
+  | { type: "CANCEL_FEATURE_VIDEO_OFFER" }
+  | { type: "CREATE_FEATURE_VIDEO"; payload: { thumbnail: string } }
+  | { type: "SET_PRO_HYPE_MODE"; payload: "locked" | "manual" }
+  | { type: "SET_HYPE"; payload: number }
+  | { type: "SET_PUBLIC_IMAGE"; payload: number }
+  | { type: "SIGN_BRAND_DEAL"; payload: { id: string; cash: number; name?: string; hashtag?: string; brandImage?: string } }
+  | { type: "SIGN_VIDEO_GAME_DEAL"; payload: { id: string; cash: number } }
+  | { type: "SET_POPULARITY"; payload: number }
+  | { type: "SET_REGIONAL_POPULARITY"; payload: { region: string, popularity: number } }
+  | {
+      type: "UPDATE_RELEASE_COVER_ART";
+      payload: { releaseId: string; newCoverArt: string };
+    }
+  | {
+      type: "ACCEPT_SOUNDTRACK_OFFER";
+      payload: { albumTitle: string; emailId: string };
+    }
+  | {
+      type: "CREATE_SOUNDTRACK_CONTRIBUTION";
+      payload: { albumTitle: string; coverArt: string; songIds: string[] };
+    }
+  | { type: "CANCEL_SOUNDTRACK_OFFER" }
+  | { type: "ACCEPT_FEATURE_OFFER"; payload: FeatureOffer }
+  | { type: "CANCEL_FEATURE_OFFER" }
+  | {
+      type: "CREATE_FEATURE_SONG";
+      payload: { songTitle: string; coverArt: string; releaseDate: GameDate };
+    }
+  | { type: "CREATE_TOUR"; payload: Tour }
+  | { type: "START_TOUR"; payload: { tourId: string } }
+  | { type: "CANCEL_TOUR"; payload: { tourId: string } }
+  | { type: "EDIT_TOUR_SETLIST"; payload: { tourId: string; newSetlist: string[]; addedSongs: string[]; removedSongs: string[] } }
+  | { type: "COLLECT_PRESALE"; payload: { tourId: string } }
+  | {
+      type: "ADD_PRESALE_ALLOCATION";
+      payload: { tourId: string; percentage: number };
+    }
+  | { type: "ADD_TOUR_LEG"; payload: { tourId: string; venues: Venue[] } }
+  | { type: "UPLOAD_TOUR_PHOTO"; payload: string }
+  | { type: "SELECT_SOUNDTRACK"; payload: string | null }
+  | { type: "SELECT_TOUR"; payload: string | null }
+  | {
+      type: "HIRE_MANAGER";
+      payload: { managerId: string; contractYears: number };
+    }
+  | {
+      type: "TOGGLE_MANAGER_SETTING";
+      payload: {
+        setting:
+          | "autoDistributeAscap"
+          | "autoSubmitAwards"
+          | "autoSubmitCoachella"
+          | "autoMakeOfficialAudio"
+          | "autoDistributeFreeSongsToAscap";
+      };
+    }
+  | {
+      type: "SET_MANAGER_GIG_REGION";
+      payload: "Random" | "US" | "Canada" | "UK" | "Latin America" | "Asia" | "Africa";
+    }
+  | {
+      type: "BUY_PLAYLIST_ENTRY";
+      payload: {
+        songId: string;
+        playlistId: string;
+        position: number;
+        cost: number;
+        platform?: "spotify" | "appleMusic";
+      };
+    }
+  | { type: "FIRE_MANAGER" }
+  | { type: "HIRE_SECURITY"; payload: { teamId: string } }
+  | { type: "FIRE_SECURITY" }
+  | {
+      type: "UPDATE_NPC_X_USER";
+      payload: { userId: string; newName: string; newUsername: string };
+    }
+  | { type: "VIEW_PAST_LABEL_CHANNEL"; payload: string }
+  | {
+      type: "ACCEPT_EVENT_INVITATION";
+      payload: {
+        emailId: string;
+        eventName: string;
+        eventType: string;
+        hostName?: string;
+        associatedSoundtrack?: string;
+      };
+    }
+  | { type: "CONFIRM_EVENT_ATTENDANCE"; payload: { imageUrl: string } }
+  | { type: "DECLINE_EVENT_INVITATION"; payload: { emailId: string } }
+  | {
+      type: "UPDATE_NPC_AVATAR";
+      payload: { userId: string; newAvatar: string };
+    }
+  | {
+      type: "UPDATE_NPC_COVER";
+      payload: { artistName: string; newCover: string };
+    }
+  | {
+      type: "ACCEPT_VOGUE_OFFER";
+      payload: {
+        magazine: "Vogue" | "Vogue Korea" | "Vogue Italy";
+        emailId: string;
+      };
+    }
+  | { type: "CANCEL_VOGUE_OFFER" }
+  | { type: "SET_CLOUD_SAVE_ID"; payload: string }
+  | { type: "CREATE_VOGUE_FEATURE"; payload: { photoshoot: VoguePhotoshoot } }
+  | {
+      type: "START_DATING";
+      payload: { partnerName: string; partnerType: "npc" | "custom"; partnerImage?: string };
+    }
+  | {
+      type: "REVEAL_RELATIONSHIP";
+      payload: { relationshipId: string; outlet: "popbase" | "tmz" };
+    }
+  | {
+      type: "ADVANCE_RELATIONSHIP";
+      payload: { relationshipId: string; newStatus: "engaged" | "married"; prenup?: any };
+    }
+  | { type: "BREAK_UP"; payload: { relationshipId: string } }
+  | { type: "FILE_FOR_DIVORCE"; payload: { relationshipId: string } }
+  | {
+      type: "SUBMIT_DIVORCE_PROPOSAL";
+      payload: {
+        relationshipId: string;
+        proposedBy: "player" | "partner";
+        custody: "player" | "joint" | "partner";
+        alimonyPayor: "player" | "partner" | "none";
+        alimonyAmount: number;
+        childSupportPayor: "player" | "partner" | "none";
+        childSupportAmount: number;
+      };
+    }
+  | {
+      type: "EVALUATE_DIVORCE_PROPOSAL";
+      payload: { relationshipId: string; proposalId: string };
+    }
+  | { type: "GET_BACK_WITH_EX"; payload: { relationshipId: string; isPublic?: boolean } }
+  | {
+      type: "RELATIONSHIP_ACTION";
+      payload: { relationshipId: string; actionType: "dinner" | "vacation" | "gift" | "therapy" };
+    }
+  | {
+      type: "PLAN_WEDDING";
+      payload: { relationshipId: string; style: "vegas" | "backyard" | "tuscany" | "met_gala"; prenup?: any };
+    }
+  | {
+      type: "INVITE_PARTNER_COLLAB";
+      payload: { relationshipId: string; collabType: "duet" | "music_video" };
+    }
+  | {
+      type: "CELEBRATE_ANNIVERSARY";
+      payload: { relationshipId: string; celebrationType: "party" | "tribute" | "song" };
+    }
+  | {
+      type: "HANDLE_RELATIONSHIP_DRAMA";
+      payload: { relationshipId: string; dramaAction: "deny" | "united_front" | "ignore" | "split" };
+    }
+  | {
+      type: "TRIGGER_RANDOM_DRAMA";
+      payload: { relationshipId: string };
+    }
+  | {
+      type: "UPDATE_KID_EDUCATION";
+      payload: { kidId: string; schooling: "public" | "elite_private" | "swiss_boarding" | "performing_arts" | "homeschool" };
+    }
+  | {
+      type: "ENROLL_KID_ACTIVITY";
+      payload: { kidId: string; activityType: "piano" | "vocal" | "acting" | "sports" | "art" };
+    }
+  | {
+      type: "SET_KID_PRIVACY";
+      payload: { kidId: string; privacyStatus: "private" | "spotlight" };
+    }
+  | {
+      type: "CELEBRATE_KID_BIRTHDAY";
+      payload: { kidId: string; partyType: "family" | "extravaganza" };
+    }
+  | {
+      type: "MANAGE_KID_FINANCES";
+      payload: { kidId: string; trustFundDeposit?: number; monthlyAllowance?: number };
+    }
+  | {
+      type: "CO_PARENTING_ACTION";
+      payload: { relationshipId: string; action: "friendly_party" | "extra_gift" | "peaceful_talk" };
+    }
+  | {
+      type: "DEDICATE_SONG_TO_KID";
+      payload: { kidId: string; songTitle: string };
+    }
+  | {
+      type: "UPDATE_RELATIONSHIP_IMAGE";
+      payload: { relationshipId: string; image: string };
+    }
+  | {
+      type: "UPDATE_KID_IMAGE";
+      payload: { kidId: string; image: string };
+    }
+  | { type: "START_PREGNANCY"; payload: { partnerName: string } }
+  | { type: "REVEAL_PREGNANCY" }
+  | { type: "UPDATE_PREGNANCY_DETAILS"; payload: Partial<Pregnancy> }
+  | { type: "GIVE_BIRTH"; payload: { childName: string } }
+  | { type: "START_KID_CAREER"; payload: { kidId: string } }
+  | { type: "REQUEST_PROMO_INTERVIEW" }
+  | {
+      type: "ACCEPT_PROMO_INTERVIEW";
+      payload: { emailId: string; source: PromoInterviewSource };
+    }
+  | { type: "DECLINE_PROMO_INTERVIEW"; payload: { emailId: string } }
+  | {
+      type: "SUBMIT_PROMO_INTERVIEW";
+      payload: { songId: string; thumbnail: string; topics: string[] };
+    }
+  | { type: "MARK_EMAIL_OFFER_ANSWERED"; payload: { emailId: string } }
+  | {
+      type: "RESPOND_TO_CHEATING";
+      payload: {
+        response: "break_up" | "forgive" | "ignore";
+        relationshipId: string;
+      };
+    }
+  | {
+      type: "CREATE_TIKTOK";
+      payload: { content: string; songId?: string; thumbnail?: string };
+    }
+  | {
+      type: "UPLOAD_CANVAS";
+      payload: { songId: string; videoUrl: string; hashtags: string[] };
+    }
+  | {
+      type: "UPLOAD_ALBUM_CANVAS";
+      payload: { releaseId: string; videoUrl: string; hashtags: string[] };
+    }
+  | { type: "SUBMIT_TO_RADIO"; payload: { songId: string; format?: string; formats?: string[]; region?: "US" | "UK" } }
+  | {
+      type: "UPDATE_RADIO_FORMATS";
+      payload: { songId: string; formats: string[]; region?: "US" | "UK" };
+    }
+  | {
+      type: "WITHDRAW_FROM_RADIO";
+      payload: { songId: string; format?: string; region?: "US" | "UK" };
+    }
+  | {
+      type: "PROMOTE_RADIO";
+      payload: { songId: string; format?: string; amount: number; source: "personal" | "label"; region?: "US" | "UK" };
+    }
+  | {
+      type: "DO_BRAND_CAMPAIGN";
+      payload: { brandName: string; payout: number; logoUrl: string };
+    }
+  | {
+      type: "SIGN_BRAND_AMBASSADOR";
+      payload: {
+        brandId: string;
+        brandName: string;
+        weeklyPayout: number;
+        contractDurationWeeks?: number;
+        durationWeeks?: number;
+        logoUrl: string;
+      };
+    }
+  | {
+      type: "SIGN_SONG_SYNC_LICENSE";
+      payload: {
+        songId: string;
+        mediaTitle: string;
+        mediaType: string;
+        upfrontPayout: number;
+        streamBoostPercent: number;
+        durationWeeks: number;
+        weeklyStreamsBoost?: number;
+      };
+    }
+  | {
+      type: "GO_TO_KAI_STREAM_SETUP";
+      payload: { emailId: string };
+    }
+  | {
+      type: "SUBMIT_KAI_STREAM_DETAILS";
+      payload: {
+        emailId: string;
+        songId: string;
+        location: StreamLocation;
+        promoBanner: string;
+        ytThumbnail: string;
+      };
+    }
+  | {
+      type: "REQUEST_KAI_CENAT_STREAM";
+    }
+  | {
+      type: "QUIT_FILMING_GIG";
+      payload: { roleId?: string; reason?: string };
+    }
+  | { type: "CANCEL_FIFA_OFFER" }
+  | { type: "CREATE_FIFA_CONTRIBUTION"; payload: { title: string; coverArt: string } }
+  | { type: "ACCEPT_FIFA_OFFER"; payload: { emailId?: string; collabs?: string[]; [key: string]: any } }
+  | { type: "ACCEPT_GOLDEN_GLOBE_INVITE"; payload: { emailId: string } }
+  | { type: "ACCEPT_GOLDEN_GLOBE_RED_CARPET"; payload: { emailId: string; lookUrl?: string } }
+  | { type: "ACCEPT_GOLDEN_GLOBE_RED_CARPET_INVITE"; payload: { emailId: string } }
+  | { type: "DECLINE_GOLDEN_GLOBE_RED_CARPET"; payload?: { emailId?: string } }
+  | { type: "ACCEPT_INTERVIEW_OFFER"; payload: { releaseId: string; interviewType: string; outletName: string; emailId: string } }
+  | { type: "CANCEL_INTERVIEW_OFFER" }
+  | { type: "CREATE_COACHELLA_LIVE_ALBUM"; payload: { emailId: string; title: string; coverArt: string; selectedSongIds: string[] } }
+  | { type: "EDIT_ITUNES_VERSION"; payload: { songId: string; versionId?: string; price?: number; title?: string; coverArt?: string } }
+  | { type: "REMOVE_ITUNES_VERSION"; payload: { songId: string; versionId?: string } }
+  | { type: "RELEASE_ITUNES_VERSION"; payload: { songId: string; title: string; coverArt: string; price?: number } }
+  | { type: "END_MEMBER_HIATUS"; payload: { memberId: string } }
+  | { type: "START_MEMBER_HIATUS"; payload: { memberId: string; reason?: string } }
+  | { type: "GO_TO_GOLDEN_GLOBE_SUBMISSIONS"; payload: { emailId: string } }
+  | { type: "PURCHASE_TIKTOK_PROMOTE"; payload: any }
+  | { type: "RELEASE_POST_ALBUM_SINGLE"; payload: { projectId: string; songId: string; coverArt: string; releaseDate?: any } }
+  | { type: "REQUEST_MAGAZINE_PROMO"; payload: { submissionId: string; songId: string; cost: number } }
+  | { type: "REQUEST_TV_INTERVIEW_PROMO"; payload: { submissionId: string; songId: string; cost: number } }
+  | { type: "SET_INSTAGRAM_FOLLOWERS"; payload: { newAmount: number } }
+  | { type: "SET_TIKTOK_FOLLOWERS"; payload: { newAmount: number } }
+  | { type: "SET_YOUTUBE_SUBSCRIBERS"; payload: { newAmount: number } }
+  | { type: "SUBMIT_FOR_GOLDEN_GLOBES"; payload: { submissions: any; emailId: string } }
+  | { type: "SUBMIT_INTERVIEW"; payload: { answers: any[] } }
+  | { type: "UPDATE_GAME_STATE"; payload: Partial<GameState> }
+  | { type: "CREATE_CUSTOM_AWARD_SHOW"; payload: { customAwardShow: any } }
+  | { type: "ACCEPT_MOVIE_PREMIERE_RED_CARPET"; payload: { emailId: string; lookUrl: string; location: string } }
+  | { type: "CREATE_TV_FILM_PROJECT"; payload: { project: TvAndFilmProject } }
+  | { type: "RENEW_TV_SHOW"; payload: { projectId: string; episodesCount: number; newCast?: CastMember[]; coverUrl?: string } }
+  | { type: "ADD_GUEST_CAST_MEMBER"; payload: { projectId: string; castMember: CastMember } }
+  | { type: "UPDATE_EPISODE_YOUTUBE_THUMBNAIL"; payload: { projectId: string; episodeNumber: number; thumbnailUrl: string } }
+  | { type: "SIGN_YOUTUBE_DEAL"; payload: { projectId: string } }
+  | { type: "DELETE_TV_FILM_PROJECT"; payload: { projectId: string } }
+  | { type: "SEND_NPC_FEATURE_REQUEST"; payload: { npcArtistName: string } };
+export interface PodcastEpisode {
+  id: string;
+  title: string;
+  description: string;
+  duration: number;
+  releaseDate: { year: number; week: number };
+  plays: number;
+  revenue: number;
+  hasVideo: boolean;
+  guestId?: string;
+  guestName?: string;
+}
+
+export interface Podcast {
+  id: string;
+  name: string;
+  host: string;
+  description: string;
+  topics: string[];
+  coverArt: string | null;
+  followers: number;
+  episodes: PodcastEpisode[];
+  totalPlays: number;
+  imdbRating: number;
+  isNpc: boolean;
+  requiredPopularity?: number; // for guest appearances
+}
+
+export interface PodcastPitchOffer {
+  id: string;
+  podcastId: string;
+  type: "podcast_pitch";
+  status: "pending" | "accepted" | "rejected";
+  releaseIdToPromote: string;
+  date: { year: number; week: number };
+}
+
+export type StreamLocation = 'Disneyworld' | 'Normal Stream' | 'LA Pop Up' | 'Petting Zoo';
+
+export interface TwitchStreamSchedule {
+    id: string;
+    streamer: string;
+    location: StreamLocation;
+    songId: string;
+    promoBanner: string;
+    ytThumbnail: string;
+    scheduledDate: GameDate;
+    announceDate: GameDate;
+    hasAnnounced: boolean;
+    hasStreamed: boolean;
+}

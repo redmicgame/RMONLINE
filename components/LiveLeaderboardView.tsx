@@ -1,0 +1,575 @@
+import React, { useState, useEffect, useMemo } from 'react';
+import { useGame, formatNumber } from '../context/GameContext';
+import { useOnline } from '../context/OnlineContext';
+import { useFirebase } from '../context/FirebaseContext';
+import { getLeaderboard, uploadLeaderboardStats } from '../firebase';
+import ChevronLeftIcon from './icons/ChevronLeftIcon';
+import TrophyIcon from './icons/TrophyIcon';
+import { db, injectMediaIntoState } from '../db/db';
+
+const CATEGORIES = [
+    { id: 'mostStreamedSong', label: 'Most Streamed Song' },
+    { id: 'bestSellingAlbum', label: 'Best Selling Album' },
+    { id: 'mostGrammys', label: 'Most GRAMMYs' },
+    { id: 'mostIgFollowers', label: 'Most IG Followers' }
+];
+
+const MODES = ['original', 'easy', 'normal', 'hard', 'extreme'];
+
+const LiveLeaderboardView: React.FC = () => {
+    const { gameState, dispatch } = useGame();
+    const { onlineArtists, onlineSongs, onlineReleases } = useOnline();
+    const { user, login } = useFirebase();
+
+    const [viewScope, setViewScope] = useState<'live' | 'halloffame'>('live');
+    const [liveMetric, setLiveMetric] = useState<'listeners' | 'streams' | 'followers' | 'songs' | 'albums'>('listeners');
+    const [activeMode, setActiveMode] = useState('original');
+    const [activeCategory, setActiveCategory] = useState('mostStreamedSong');
+
+    const rankedArtists = useMemo(() => {
+        return [...onlineArtists].sort((a, b) => {
+            if (liveMetric === 'listeners') return (b.monthlyListeners || 0) - (a.monthlyListeners || 0);
+            if (liveMetric === 'streams') return (b.totalStreams || 0) - (a.totalStreams || 0);
+            return (b.followers || 0) - (a.followers || 0);
+        });
+    }, [onlineArtists, liveMetric]);
+
+    const rankedSongs = useMemo(() => {
+        return [...onlineSongs].sort((a, b) => (b.totalStreams || 0) - (a.totalStreams || 0));
+    }, [onlineSongs]);
+
+    const rankedAlbums = useMemo(() => {
+        return [...onlineReleases]
+            .filter(r => r.type !== 'Single' && !r.isScheduled)
+            .sort((a, b) => (b.totalSales || 0) - (a.totalSales || 0));
+    }, [onlineReleases]);
+    
+    const [leaderboardData, setLeaderboardData] = useState<any[]>([]);
+    const [loading, setLoading] = useState(false);
+    
+    const [syncing, setSyncing] = useState(false);
+    const [syncingImages, setSyncingImages] = useState(false);
+    const [syncProgress, setSyncProgress] = useState(0);
+
+    const fetchLeaderboard = async () => {
+        setLoading(true);
+        const data = await getLeaderboard(activeMode, activeCategory);
+        setLeaderboardData(data);
+        setLoading(false);
+    };
+
+    useEffect(() => {
+        fetchLeaderboard();
+    }, [activeMode, activeCategory]);
+
+
+    const handleSyncImages = async () => {
+        if (!user) return;
+        setSyncingImages(true);
+        setSyncProgress(0);
+
+        try {
+            const allSaves = await db.saves.toArray();
+            const bestStats: Record<string, any> = {};
+
+            for (let i = 0; i < allSaves.length; i++) {
+                const save = allSaves[i];
+                if (!save || !save.state) continue;
+                
+                let stateToAnalyze = save.state;
+                // Force inject media to get the actual cover arts instead of UUIDs
+                stateToAnalyze = await injectMediaIntoState(save.state);
+                
+                const mode = stateToAnalyze.difficultyMode || 'normal';
+                
+                let maxSongStreams = 0;
+                let maxSongData: any = null;
+                
+                let maxAlbumSales = 0;
+                let maxAlbumData: any = null;
+                
+                let maxGrammys = 0;
+                let maxGrammyArtist = "";
+                let maxGrammyImage = "";
+                
+                let maxFollowers = 0;
+                let maxFollowerArtist = "";
+                let maxFollowerImage = "";
+
+                Object.keys(stateToAnalyze.artistsData || {}).forEach(artistId => {
+                    const data = stateToAnalyze.artistsData[artistId];
+                    if (!data) return;
+
+                    const artistName = stateToAnalyze.soloArtist?.name || stateToAnalyze.group?.name || "Artist";
+                    const artistImage = stateToAnalyze.soloArtist?.avatar || stateToAnalyze.group?.avatar || "";
+                    
+                    if (data.songs) {
+                        data.songs.forEach((song: any) => {
+                            if ((song.streams || 0) > maxSongStreams) {
+                                maxSongStreams = song.streams;
+                                maxSongData = { songName: song.title, cover: song.coverArt, artistName };
+                            }
+                        });
+                    }
+                    if (data.releases) {
+                        data.releases.forEach((rel: any) => {
+                            if (rel.type === 'Album' && (rel.sales || 0) > maxAlbumSales) {
+                                maxAlbumSales = rel.sales;
+                                maxAlbumData = { albumName: rel.title, cover: rel.coverArt, artistName };
+                            }
+                        });
+                    }
+                    if (data.grammyHistory && data.grammyHistory.length > maxGrammys) {
+                        maxGrammys = data.grammyHistory.length;
+                        maxGrammyArtist = artistName;
+                        maxGrammyImage = artistImage;
+                    }
+                    if (data.instagramFollowers && data.instagramFollowers > maxFollowers) {
+                        maxFollowers = data.instagramFollowers;
+                        maxFollowerArtist = artistName;
+                        maxFollowerImage = artistImage;
+                    }
+                });
+
+                if (maxSongData && maxSongStreams > (bestStats[`${mode}_mostStreamedSong`]?.score || 0)) {
+                    bestStats[`${mode}_mostStreamedSong`] = { score: maxSongStreams, ...maxSongData };
+                }
+                if (maxAlbumData && maxAlbumSales > (bestStats[`${mode}_bestSellingAlbum`]?.score || 0)) {
+                    bestStats[`${mode}_bestSellingAlbum`] = { score: maxAlbumSales, ...maxAlbumData };
+                }
+                if (maxGrammys > (bestStats[`${mode}_mostGrammys`]?.score || 0)) {
+                    bestStats[`${mode}_mostGrammys`] = { score: maxGrammys, artistName: maxGrammyArtist, cover: maxGrammyImage, itemName: "" };
+                }
+                if (maxFollowers > (bestStats[`${mode}_mostIgFollowers`]?.score || 0)) {
+                    bestStats[`${mode}_mostIgFollowers`] = { score: maxFollowers, artistName: maxFollowerArtist, cover: maxFollowerImage, itemName: "" };
+                }
+                
+                setSyncProgress(Math.floor(((i + 1) / allSaves.length) * 100));
+            }
+
+            for (const key of Object.keys(bestStats)) {
+                const [mode, category] = key.split('_');
+                const stat = bestStats[key];
+                await uploadLeaderboardStats(
+                    user.uid,
+                    mode,
+                    category,
+                    stat.score,
+                    stat.artistName,
+                    stat.songName || stat.albumName || stat.itemName || "",
+                    stat.cover || ""
+                );
+            }
+
+            fetchLeaderboard();
+        } catch (e) {
+            console.error("Sync error", e);
+            alert("Error syncing saves. They may be corrupted.");
+        } finally {
+            setSyncingImages(false);
+            setSyncProgress(0);
+        }
+    };
+
+    const handleSync = async () => {
+        if (!user) return;
+        setSyncing(true);
+        setSyncProgress(0);
+
+        try {
+            const allSaves = await db.saves.toArray();
+            
+            const bestStats: Record<string, any> = {};
+
+            for (let i = 0; i < allSaves.length; i++) {
+                const save = allSaves[i];
+                if (!save || !save.state) continue;
+                
+                let stateToAnalyze = save.state;
+
+                // Simple check for media string references to skip inject overhead for simple stats if we don't care about image precision 
+                // But we need the image. So let's inject.
+                stateToAnalyze = await injectMediaIntoState(save.state);
+                
+                const mode = stateToAnalyze.difficultyMode || 'normal';
+                
+                let maxSongStreams = 0;
+                let maxSongData: any = null;
+                
+                let maxAlbumSales = 0;
+                let maxAlbumData: any = null;
+                
+                let maxGrammys = 0;
+                let maxGrammyArtist = "";
+                let maxGrammyImage = "";
+                
+                let maxFollowers = 0;
+                let maxFollowerArtist = "";
+                let maxFollowerImage = "";
+
+                Object.keys(stateToAnalyze.artistsData || {}).forEach(artistId => {
+                    const data = stateToAnalyze.artistsData[artistId];
+                    if (!data) return;
+
+                    const artistName = stateToAnalyze.soloArtist?.name || stateToAnalyze.group?.name || "Artist";
+                    const artistImage = stateToAnalyze.soloArtist?.avatar || stateToAnalyze.group?.avatar || "";
+                    
+                    if (data.songs) {
+                        data.songs.forEach((song: any) => {
+                            if ((song.streams || 0) > maxSongStreams) {
+                                maxSongStreams = song.streams;
+                                maxSongData = { songName: song.title, cover: song.coverArt, artistName };
+                            }
+                        });
+                    }
+                    if (data.releases) {
+                        data.releases.forEach((rel: any) => {
+                            if (rel.type === 'Album' && (rel.sales || 0) > maxAlbumSales) {
+                                maxAlbumSales = rel.sales;
+                                maxAlbumData = { albumName: rel.title, cover: rel.coverArt, artistName };
+                            }
+                        });
+                    }
+                    if (data.grammyHistory && data.grammyHistory.length > maxGrammys) {
+                        maxGrammys = data.grammyHistory.length;
+                        maxGrammyArtist = artistName;
+                        maxGrammyImage = artistImage;
+                    }
+                    if (data.instagramFollowers && data.instagramFollowers > maxFollowers) {
+                        maxFollowers = data.instagramFollowers;
+                        maxFollowerArtist = artistName;
+                        maxFollowerImage = artistImage;
+                    }
+                });
+
+                if (maxSongData && maxSongStreams > (bestStats[`${mode}_mostStreamedSong`]?.score || 0)) {
+                    bestStats[`${mode}_mostStreamedSong`] = { score: maxSongStreams, ...maxSongData };
+                }
+                if (maxAlbumData && maxAlbumSales > (bestStats[`${mode}_bestSellingAlbum`]?.score || 0)) {
+                    bestStats[`${mode}_bestSellingAlbum`] = { score: maxAlbumSales, ...maxAlbumData };
+                }
+                if (maxGrammys > (bestStats[`${mode}_mostGrammys`]?.score || 0)) {
+                    bestStats[`${mode}_mostGrammys`] = { score: maxGrammys, artistName: maxGrammyArtist, cover: maxGrammyImage, itemName: "" };
+                }
+                if (maxFollowers > (bestStats[`${mode}_mostIgFollowers`]?.score || 0)) {
+                    bestStats[`${mode}_mostIgFollowers`] = { score: maxFollowers, artistName: maxFollowerArtist, cover: maxFollowerImage, itemName: "" };
+                }
+
+                setSyncProgress(Math.floor(((i + 1) / allSaves.length) * 100));
+            }
+
+            // Upload best stats
+            for (const key of Object.keys(bestStats)) {
+                const [mode, category] = key.split('_');
+                const stat = bestStats[key];
+                await uploadLeaderboardStats(
+                    user.uid,
+                    mode,
+                    category,
+                    stat.score,
+                    stat.artistName,
+                    stat.songName || stat.albumName || stat.itemName || "",
+                    stat.cover || ""
+                );
+            }
+
+            fetchLeaderboard();
+        } catch (e) {
+            console.error("Sync error", e);
+            alert("Error syncing saves. They may be corrupted.");
+        } finally {
+            setSyncing(false);
+            setSyncProgress(0);
+        }
+    };
+
+    return (
+        <div className="flex flex-col h-full bg-zinc-950 text-white">
+            <div className="sticky top-0 z-10 bg-zinc-950/80 backdrop-blur-md border-b border-zinc-800 p-4 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                    <button 
+                        onClick={() => dispatch({ type: 'CHANGE_VIEW', payload: 'game' })}
+                        className="p-2 -ml-2 rounded-full hover:bg-zinc-800 transition-colors"
+                    >
+                        <ChevronLeftIcon className="w-6 h-6" />
+                    </button>
+                    <h1 className="text-xl font-bold flex items-center gap-2">
+                        <TrophyIcon className="w-5 h-5 text-yellow-500" /> Live Leaderboard
+                    </h1>
+                </div>
+                <div className="flex bg-zinc-900 rounded-lg p-1 border border-zinc-800 text-xs font-bold">
+                    <button
+                        onClick={() => setViewScope('live')}
+                        className={`px-3 py-1.5 rounded-md transition-colors ${viewScope === 'live' ? 'bg-red-600 text-white' : 'text-zinc-400 hover:text-white'}`}
+                    >
+                        Live Online
+                    </button>
+                    <button
+                        onClick={() => setViewScope('halloffame')}
+                        className={`px-3 py-1.5 rounded-md transition-colors ${viewScope === 'halloffame' ? 'bg-zinc-700 text-white' : 'text-zinc-400 hover:text-white'}`}
+                    >
+                        Hall of Fame
+                    </button>
+                </div>
+            </div>
+
+            <div className="p-4 overflow-y-auto pb-24">
+                {viewScope === 'live' ? (
+                    <div className="space-y-4">
+                        <div className="flex gap-2 p-1 bg-zinc-900 rounded-lg overflow-x-auto no-scrollbar">
+                            {[
+                                { id: 'listeners', label: 'Monthly Listeners' },
+                                { id: 'streams', label: 'Total Streams' },
+                                { id: 'followers', label: 'X Followers' },
+                                { id: 'songs', label: 'Top Online Songs' },
+                                { id: 'albums', label: 'Top Online Albums' }
+                            ].map(tab => (
+                                <button
+                                    key={tab.id}
+                                    onClick={() => setLiveMetric(tab.id as any)}
+                                    className={`flex-shrink-0 py-2 px-3 rounded-md text-xs font-bold transition-colors ${
+                                        liveMetric === tab.id ? 'bg-red-600 text-white' : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
+                                    }`}
+                                >
+                                    {tab.label}
+                                </button>
+                            ))}
+                        </div>
+
+                        {(liveMetric === 'listeners' || liveMetric === 'streams' || liveMetric === 'followers') && (
+                            <div className="space-y-2">
+                                {rankedArtists.length === 0 ? (
+                                    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-8 text-center text-zinc-500 text-sm">
+                                        No online artists ranked yet.
+                                    </div>
+                                ) : rankedArtists.map((artist, idx) => {
+                                    const isMe = artist.uid === user?.uid;
+                                    const metricValue = liveMetric === 'listeners' ? artist.monthlyListeners : liveMetric === 'streams' ? artist.totalStreams : artist.followers;
+                                    return (
+                                        <div key={artist.uid} className={`flex items-center p-3 rounded-xl border ${isMe ? 'bg-red-950/30 border-red-500/50' : 'bg-zinc-900 border-zinc-800'}`}>
+                                            <div className={`w-8 text-center font-black ${idx === 0 ? 'text-yellow-400 text-lg' : 'text-zinc-500 text-sm'}`}>#{idx + 1}</div>
+                                            <img src={artist.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(artist.name)}`} alt={artist.name} className="w-11 h-11 rounded-full object-cover mx-3 border border-zinc-700" />
+                                            <div className="flex-grow min-w-0">
+                                                <p className="font-bold text-white truncate flex items-center gap-1.5">
+                                                    <span>{artist.name}</span>
+                                                    {isMe && <span className="text-[10px] bg-red-600 text-white px-1.5 py-0.5 rounded font-bold">YOU</span>}
+                                                </p>
+                                                <p className="text-xs text-zinc-400 truncate">{artist.genre || artist.country} • Pop {artist.popularity}</p>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="font-black text-red-400 text-sm">{formatNumber(metricValue || 0)}</p>
+                                                <p className="text-[10px] text-zinc-500 uppercase">{liveMetric === 'listeners' ? 'Listeners' : liveMetric === 'streams' ? 'Streams' : 'Followers'}</p>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+
+                        {liveMetric === 'songs' && (
+                            <div className="space-y-2">
+                                {rankedSongs.length === 0 ? (
+                                    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-8 text-center text-zinc-500 text-sm">
+                                        No online songs released yet.
+                                    </div>
+                                ) : rankedSongs.slice(0, 100).map((song, idx) => (
+                                    <div key={song.id} className={`flex items-center p-3 rounded-xl border ${song.artistUid === user?.uid ? 'bg-red-950/30 border-red-500/50' : 'bg-zinc-900 border-zinc-800'}`}>
+                                        <div className={`w-8 text-center font-black ${idx === 0 ? 'text-yellow-400 text-lg' : 'text-zinc-500 text-sm'}`}>#{idx + 1}</div>
+                                        <img src={song.coverArt} alt={song.title} className="w-11 h-11 rounded-lg object-cover mx-3 border border-zinc-700" />
+                                        <div className="flex-grow min-w-0">
+                                            <p className="font-bold text-white truncate">{song.title}</p>
+                                            <p className="text-xs text-zinc-400 truncate">{song.artistName}</p>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="font-black text-emerald-400 text-sm">{formatNumber(song.totalStreams || 0)}</p>
+                                            <p className="text-[10px] text-zinc-500 uppercase">Total Streams</p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        {liveMetric === 'albums' && (
+                            <div className="space-y-2">
+                                {rankedAlbums.length === 0 ? (
+                                    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-8 text-center text-zinc-500 text-sm">
+                                        No online albums released yet.
+                                    </div>
+                                ) : rankedAlbums.slice(0, 100).map((album, idx) => (
+                                    <div key={album.id} className={`flex items-center p-3 rounded-xl border ${album.artistUid === user?.uid ? 'bg-red-950/30 border-red-500/50' : 'bg-zinc-900 border-zinc-800'}`}>
+                                        <div className={`w-8 text-center font-black ${idx === 0 ? 'text-yellow-400 text-lg' : 'text-zinc-500 text-sm'}`}>#{idx + 1}</div>
+                                        <img src={album.coverArt} alt={album.title} className="w-11 h-11 rounded-lg object-cover mx-3 border border-zinc-700" />
+                                        <div className="flex-grow min-w-0">
+                                            <p className="font-bold text-white truncate">{album.title}</p>
+                                            <p className="text-xs text-zinc-400 truncate">{album.artistName} • {album.type}</p>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="font-black text-amber-400 text-sm">{formatNumber(album.totalSales || 0)}</p>
+                                            <p className="text-[10px] text-zinc-500 uppercase">Units</p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                ) : (
+                <>
+                    <div className="mb-6">
+                        <div className="flex gap-2 p-1 bg-zinc-900 rounded-lg mb-4 overflow-x-auto no-scrollbar">
+                            {MODES.map(mode => (
+                                <button
+                                    key={mode}
+                                    onClick={() => setActiveMode(mode)}
+                                    className={`flex-1 min-w-[80px] py-2 px-3 rounded-md text-sm font-bold capitalize transition-colors ${
+                                        activeMode === mode ? 'bg-zinc-700 text-white' : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
+                                    }`}
+                                >
+                                    {mode}
+                                </button>
+                            ))}
+                        </div>
+
+                        <div className="flex gap-2 p-1 bg-zinc-900 rounded-lg overflow-x-auto no-scrollbar">
+                            {CATEGORIES.map(cat => (
+                                <button
+                                    key={cat.id}
+                                    onClick={() => setActiveCategory(cat.id)}
+                                    className={`flex-shrink-0 py-2 px-4 rounded-md text-sm font-bold transition-colors ${
+                                        activeCategory === cat.id ? 'bg-zinc-700 text-white' : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
+                                    }`}
+                                >
+                                    {cat.label}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 mb-6">
+                        <div className="flex justify-between items-center mb-4">
+                            <h2 className="font-bold text-lg">Top Players</h2>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={!user ? undefined : handleSyncImages}
+                                    disabled={!user || syncing || syncingImages}
+                                    className={`px-4 py-2 rounded-lg text-sm font-bold ${!user ? 'bg-zinc-800 text-zinc-500 border border-zinc-700 cursor-not-allowed' : syncingImages ? 'bg-pink-900/50 text-pink-400' : 'bg-pink-600 hover:bg-pink-500 text-white'} transition-colors`}
+                                    title={!user ? "Sign in via Settings to sync saves" : ""}
+                                >
+                                    {syncingImages ? `Syncing... ${syncProgress}%` : 'Sync Saves Images'}
+                                </button>
+                                <button
+                                    onClick={!user ? undefined : handleSync}
+                                    disabled={!user || syncing || syncingImages}
+                                    className={`px-4 py-2 rounded-lg text-sm font-bold ${!user ? 'bg-zinc-800 text-zinc-500 border border-zinc-700 cursor-not-allowed' : syncing ? 'bg-zinc-700 text-zinc-400' : 'bg-green-600 hover:bg-green-500 text-white'} transition-colors`}
+                                    title={!user ? "Sign in via Settings to sync saves" : ""}
+                                >
+                                    {!user ? 'Sign in to Sync' : syncing ? `Syncing... ${syncProgress}%` : 'Sync My Saves'}
+                                </button>
+                            </div>
+                        </div>
+
+                        {loading ? (
+                            <div className="flex justify-center p-8">
+                                <div className="w-8 h-8 border-4 border-zinc-700 border-t-red-500 rounded-full animate-spin"></div>
+                            </div>
+                        ) : leaderboardData.length === 0 ? (
+                            <div className="text-center p-8 text-zinc-500">
+                                No entries found for this category and mode yet. Sync your saves to be the first!
+                            </div>
+                        ) : (
+                            <div className="space-y-4">
+                                {leaderboardData[0] && (
+                                    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-b from-red-950/60 via-zinc-900 to-zinc-900 border-2 border-red-500/50 p-4 shadow-xl">
+                                        <div className="flex items-center justify-between gap-2 mb-3 pb-2 border-b border-red-500/20">
+                                            <div className="flex items-center gap-2">
+                                                <span className="flex h-2.5 w-2.5 rounded-full bg-red-500 animate-pulse" />
+                                                <span className="text-xs font-black tracking-wider uppercase text-red-400">
+                                                    POTENTIAL RED MIC PRO WINNER
+                                                </span>
+                                            </div>
+                                            <div className="bg-red-600/30 text-red-300 border border-red-500/40 text-xs font-black px-2.5 py-0.5 rounded-full">
+                                                #1 SPOT
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center gap-4">
+                                            {leaderboardData[0].imageUrl ? (
+                                                <img 
+                                                    src={leaderboardData[0].imageUrl} 
+                                                    alt="" 
+                                                    className={`w-20 h-20 sm:w-24 sm:h-24 object-cover ${activeCategory.includes('Song') || activeCategory.includes('Album') ? 'rounded-xl' : 'rounded-full'} border-2 border-red-500/40 shadow-lg flex-shrink-0`}
+                                                    onError={(e) => { e.currentTarget.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(leaderboardData[0].artistName) }}
+                                                />
+                                            ) : (
+                                                <div className={`w-20 h-20 sm:w-24 sm:h-24 bg-zinc-800 flex items-center justify-center ${activeCategory.includes('Song') || activeCategory.includes('Album') ? 'rounded-xl' : 'rounded-full'} border-2 border-red-500/40 shadow-lg flex-shrink-0 text-red-400 font-black text-2xl`}>
+                                                    #1
+                                                </div>
+                                            )}
+
+                                            <div className="flex-grow min-w-0">
+                                                <h3 className="font-extrabold text-white truncate text-base sm:text-xl leading-tight">
+                                                    {leaderboardData[0].itemName || leaderboardData[0].artistName}
+                                                </h3>
+                                                {leaderboardData[0].itemName && (
+                                                    <p className="text-sm text-zinc-300 font-medium truncate mt-0.5">
+                                                        by {leaderboardData[0].artistName}
+                                                    </p>
+                                                )}
+                                                <div className="mt-2 flex items-baseline gap-1.5">
+                                                    <span className="text-xl sm:text-2xl font-black text-red-500">
+                                                        {formatNumber(leaderboardData[0].score)}
+                                                    </span>
+                                                    <span className="text-xs text-zinc-400 font-medium">
+                                                        {activeCategory.includes('Stream') ? 'Streams' : activeCategory.includes('Sell') ? 'Sales' : activeCategory.includes('Grammy') ? 'GRAMMYs' : 'Followers'}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                <div className="space-y-2 pt-2">
+                                    {leaderboardData.map((entry, idx) => (
+                                        <div key={entry.id} className={`flex items-center p-3 rounded-lg ${idx === 0 ? 'bg-red-950/20 border border-red-900/40' : 'bg-zinc-800 hover:bg-zinc-700/50'} transition-colors`}>
+                                            <div className={`w-8 text-center font-bold ${idx === 0 ? 'text-red-400 text-base' : 'text-zinc-500 text-sm'}`}>
+                                                #{idx + 1}
+                                            </div>
+                                            {entry.imageUrl && (
+                                                <img 
+                                                    src={entry.imageUrl} 
+                                                    alt="" 
+                                                    className={`w-12 h-12 object-cover ${activeCategory.includes('Song') || activeCategory.includes('Album') ? 'rounded-md' : 'rounded-full'} mx-3`}
+                                                    onError={(e) => { e.currentTarget.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(entry.artistName) }}
+                                                />
+                                            )}
+                                            <div className="flex-grow min-w-0">
+                                                <p className="font-bold text-white truncate text-sm sm:text-base">
+                                                    {entry.itemName || entry.artistName}
+                                                </p>
+                                                {entry.itemName && (
+                                                    <p className="text-xs sm:text-sm text-zinc-400 truncate">
+                                                        {entry.artistName}
+                                                    </p>
+                                                )}
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="font-bold text-red-500 text-sm sm:text-base">
+                                                    {formatNumber(entry.score)}
+                                                </p>
+                                                <p className="text-[10px] sm:text-xs text-zinc-500">
+                                                    {activeCategory.includes('Stream') ? 'Streams' : activeCategory.includes('Sell') ? 'Sales' : activeCategory.includes('Grammy') ? 'GRAMMYs' : 'Followers'}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </>
+                )}
+                </div>
+        </div>
+    );
+};
+
+export default LiveLeaderboardView;
