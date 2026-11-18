@@ -1,7 +1,7 @@
 import React, { useState, ChangeEvent } from 'react';
 import { useGame, formatNumber } from '../context/GameContext';
 import { useFirebase } from '../context/FirebaseContext';
-import { useOnline } from '../context/OnlineContext';
+import { useOnline, useWorldCountdown } from '../context/OnlineContext';
 import { deleteCareerFromCloud } from '../firebase';
 import ChevronRightIcon from './icons/ChevronRightIcon';
 import { PaparazziPhoto, PaparazziPhotoCategory } from '../types';
@@ -13,7 +13,8 @@ import PWAInstallButton from './PWAInstallButton';
 const MiscTab: React.FC = () => {
     const { gameState, dispatch, activeArtist, activeArtistData } = useGame();
     const { user, login, logout } = useFirebase();
-    const { clearMyOnlinePresence, formattedCountdown, activeOnlineArtistsCount } = useOnline();
+    const { clearMyOnlinePresence, activeOnlineArtistsCount } = useOnline();
+    const { formattedCountdown } = useWorldCountdown();
     const { date } = gameState;
     const [showEndCareerConfirm, setShowEndCareerConfirm] = useState(false);
     const [showExportOptions, setShowExportOptions] = useState(false);

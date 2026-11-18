@@ -1,6 +1,6 @@
 import React from 'react';
 import { useGame } from '../context/GameContext';
-import { useOnline } from '../context/OnlineContext';
+import { useOnline, useWorldCountdown } from '../context/OnlineContext';
 import HomeTab from './HomeTab';
 import AppsTab from './AppsTab';
 import MiscTab from './MiscTab';
@@ -10,7 +10,8 @@ import BottomNav from './BottomNav';
 const GameUI: React.FC = () => {
     const { gameState } = useGame();
     const { activeTab } = gameState;
-    const { globalDate, formattedCountdown, activeOnlineArtistsCount } = useOnline();
+    const { globalDate, activeOnlineArtistsCount } = useOnline();
+    const { formattedCountdown } = useWorldCountdown();
 
     const renderActiveTab = () => {
         switch (activeTab) {

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useGame } from '../context/GameContext';
 import { useFirebase } from '../context/FirebaseContext';
-import { useOnline } from '../context/OnlineContext';
+import { useOnline, useWorldCountdown } from '../context/OnlineContext';
 import { compressImageForCloud } from '../utils/imageCompression';
 import type { Artist, Group } from '../types';
 
@@ -15,7 +15,8 @@ interface MemberState {
 const StartScreen: React.FC = () => {
     const { dispatch } = useGame();
     const { user, isLoading: isAuthLoading, login, logout } = useFirebase();
-    const { globalDate, formattedCountdown, onlineArtists } = useOnline();
+    const { globalDate, onlineArtists } = useOnline();
+    const { formattedCountdown } = useWorldCountdown();
     const [mode, setMode] = useState<Mode>('solo');
     const [isSigningIn, setIsSigningIn] = useState(false);
 

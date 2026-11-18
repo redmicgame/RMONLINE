@@ -5,9 +5,10 @@ import React, {
   ReactNode,
   useEffect,
   useState,
+  useMemo,
 } from "react";
 import { db, getActiveSaveId, separateMediaFromState, injectMediaIntoState } from "../db/db";
-import { saveCareerToCloud, loadCareerFromCloud } from "../firebase";
+import { saveCareerToCloud, loadCareerFromCloud, clearCloudCareerHash } from "../firebase";
 import { useFirebase } from "./FirebaseContext";
 import { useOnline } from "./OnlineContext";
 import { buildOnlineCharts } from "../services/onlineCharts";
@@ -31389,10 +31390,14 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({
     onlineReleases,
     onlineVideos,
     syncMyArtistAndCatalog,
+    isLeaderTab,
   } = useOnline();
 
   const lastLoadedUidRef = React.useRef<string | null>(null);
   const lastChartHashRef = React.useRef<string>("");
+  const lastSyncedWeekRef = React.useRef<number>(0);
+  const lastSavedWeekRef = React.useRef<number>(0);
+  const lastCatalogCountsRef = React.useRef<string>("");
 
   // Load user's online career from Cloud (or per-UID IndexedDB cache) when Google auth resolves
   useEffect(() => {
@@ -31400,6 +31405,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({
 
     if (!user) {
       if (lastLoadedUidRef.current !== null) {
+        clearCloudCareerHash(lastLoadedUidRef.current);
         lastLoadedUidRef.current = null;
         dispatch({ type: "RESET_GAME" });
       }
@@ -31442,6 +31448,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({
         localStorage.setItem("redmic_active_uid", user.uid);
 
         if (stateToLoad && stateToLoad.careerMode) {
+          lastSyncedWeekRef.current = stateToLoad.date.year * 100 + stateToLoad.date.week;
+          lastSavedWeekRef.current = lastSyncedWeekRef.current;
           dispatch({
             type: "LOAD_GAME",
             payload: {
@@ -31473,31 +31481,102 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({
   const latestGameStateRef = React.useRef(gameState);
   latestGameStateRef.current = gameState;
 
-  // Save to local IndexedDB for fast reload
+  // Save to local IndexedDB for fast reload (only on meaningful gameplay changes, not view/tab switches)
   useEffect(() => {
     if (!isLoading && !isAuthLoading && user && gameState.careerMode) {
       const timeout = setTimeout(async () => {
         try {
-          const processedState = await separateMediaFromState(gameState);
+          const processedState = await separateMediaFromState(latestGameStateRef.current);
           await db.saves.put({ id: getActiveSaveId(), state: processedState });
         } catch (err) {
           console.error("Could not save game state to local DB", err);
         }
-      }, 1000);
+      }, 2000);
 
       return () => clearTimeout(timeout);
     }
-  }, [gameState, isLoading, isAuthLoading, user]);
+  }, [
+    gameState.date.year,
+    gameState.date.week,
+    gameState.careerMode,
+    gameState.activeArtistId,
+    gameState.artistsData,
+    gameState.soloArtist,
+    gameState.group,
+    gameState.extraPlayableArtists,
+    isLoading,
+    isAuthLoading,
+    user,
+  ]);
 
-  // Save career to Firestore Cloud
+  // Autosave meaningful career changes to Firestore Cloud (dirty-checked & leader-tab gated)
   useEffect(() => {
-    if (!isLoading && !isAuthLoading && user && gameState.careerMode) {
-      const timeout = setTimeout(() => {
-        saveCareerToCloud(user.uid, gameState);
-      }, 3500);
-      return () => clearTimeout(timeout);
+    if (!gameState.careerMode) {
+      lastSavedWeekRef.current = 0;
+      return;
     }
-  }, [gameState, isLoading, isAuthLoading, user]);
+    if (isLoading || isAuthLoading || !user) return;
+
+    const currentWeekKey = gameState.date.year * 100 + gameState.date.week;
+    const isImmediateMilestone = lastSavedWeekRef.current !== currentWeekKey;
+    const delayMs = isImmediateMilestone ? 2500 : 15000;
+
+    const timeout = setTimeout(() => {
+      if (!isLeaderTab()) return;
+      lastSavedWeekRef.current = currentWeekKey;
+      saveCareerToCloud(user.uid, latestGameStateRef.current);
+    }, delayMs);
+
+    return () => clearTimeout(timeout);
+  }, [
+    gameState.date.year,
+    gameState.date.week,
+    gameState.careerMode,
+    gameState.difficultyMode,
+    gameState.activeArtistId,
+    gameState.artistsData,
+    gameState.soloArtist,
+    gameState.group,
+    gameState.extraPlayableArtists,
+    gameState.spotifyPlaylists,
+    gameState.podcasts,
+    gameState.soundtrackAlbums,
+    gameState.vmaSubmissions,
+    gameState.amaSubmissions,
+    gameState.britSubmissions,
+    gameState.customAwardShow,
+    gameState.billboardHot100WeeklyArchive,
+    gameState.ukSinglesChartWeeklyArchive,
+    isLoading,
+    isAuthLoading,
+    user,
+    isLeaderTab,
+  ]);
+
+  // Flush dirty cloud career save cleanly on tab hide or page unload (0 writes if unchanged)
+  useEffect(() => {
+    if (isLoading || isAuthLoading || !user) return;
+
+    const flushCloudSave = () => {
+      const latest = latestGameStateRef.current;
+      if (!latest.careerMode || !isLeaderTab()) return;
+      saveCareerToCloud(user.uid, latest);
+    };
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        flushCloudSave();
+      }
+    };
+
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    window.addEventListener("pagehide", flushCloudSave);
+
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      window.removeEventListener("pagehide", flushCloudSave);
+    };
+  }, [user, isLoading, isAuthLoading, isLeaderTab]);
 
   // Synchronized 15-minute Real-Time World Clock -> Auto-progress weeks
   useEffect(() => {
@@ -31509,7 +31588,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({
     if (globalWeekKey > localWeekKey) {
       const diff = globalWeekKey - localWeekKey;
       if (diff > 6) {
-        // Fast-forward cleanly to 1 week prior, then run PROGRESS_WEEK
         const targetMinusOne = globalWeekKey - 1;
         const targetYear = Math.floor((targetMinusOne - 1) / 52);
         const targetWeek = ((targetMinusOne - 1) % 52) + 1;
@@ -31518,39 +31596,73 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({
         dispatch({ type: "PROGRESS_WEEK" });
       }
     }
-  }, [globalDate, gameState.date, gameState.careerMode, worldClock, user, isLoading, isAuthLoading]);
+  }, [
+    globalDate.year,
+    globalDate.week,
+    gameState.date.year,
+    gameState.date.week,
+    gameState.careerMode,
+    worldClock,
+    user,
+    isLoading,
+    isAuthLoading,
+  ]);
 
   const { activeArtistId, soloArtist, group, artistsData, careerMode } = gameState;
   const activeArtistData = activeArtistId ? artistsData[activeArtistId] : null;
 
-  let activeArtist: Artist | Group | null = null;
-  let allPlayerArtists: Array<Artist | Group> = [];
+  const allPlayerArtists = useMemo<Array<Artist | Group>>(() => {
+    let list: Array<Artist | Group> = [];
+    if (careerMode === "solo" && soloArtist) {
+      list = [soloArtist];
+    } else if (careerMode === "group" && group) {
+      list = [group, ...group.members];
+    }
+    if (gameState.extraPlayableArtists) {
+      list = [...list, ...gameState.extraPlayableArtists];
+    }
+    return list;
+  }, [careerMode, soloArtist, group, gameState.extraPlayableArtists]);
 
-  if (careerMode === "solo" && soloArtist) {
-    allPlayerArtists = [soloArtist];
-  } else if (careerMode === "group" && group) {
-    allPlayerArtists = [group, ...group.members];
-  }
+  const activeArtist = useMemo(
+    () => allPlayerArtists.find((a) => a.id === activeArtistId) || null,
+    [allPlayerArtists, activeArtistId]
+  );
 
-  if (gameState.extraPlayableArtists) {
-    allPlayerArtists = [...allPlayerArtists, ...gameState.extraPlayableArtists];
-  }
-
-  activeArtist = allPlayerArtists.find((a) => a.id === activeArtistId) || null;
-
-  // Sync artist profile, songs, releases, and videos to public Firestore multiplayer collections
+  // Sync changed artist/catalog docs to public Firestore multiplayer collections (batched & per-doc hashed)
   useEffect(() => {
-    if (isLoading || isAuthLoading || !user || !gameState.careerMode || !activeArtistData) return;
+    if (!gameState.careerMode) {
+      lastSyncedWeekRef.current = 0;
+      lastCatalogCountsRef.current = "";
+      return;
+    }
+    if (isLoading || isAuthLoading || !user || !activeArtistData) return;
+
+    const weekKey = gameState.date.year * 100 + gameState.date.week;
+    const releasedCount = (activeArtistData.songs || []).filter(s => s.isReleased && !s.isTakenDown).length;
+    const catalogCountsKey = `${releasedCount}:${(activeArtistData.releases || []).length}:${(activeArtistData.videos || []).length}`;
+    const isUrgentSync =
+      lastSyncedWeekRef.current !== weekKey ||
+      lastCatalogCountsRef.current !== catalogCountsKey;
+    const delayMs = isUrgentSync ? 1500 : 5000;
+
     const timeout = setTimeout(() => {
-      syncMyArtistAndCatalog(gameState, activeArtistData);
-    }, 900);
+      if (!isLeaderTab()) return;
+      lastSyncedWeekRef.current = weekKey;
+      lastCatalogCountsRef.current = catalogCountsKey;
+      const latest = latestGameStateRef.current;
+      const latestArtistData = latest.activeArtistId ? latest.artistsData[latest.activeArtistId] : null;
+      syncMyArtistAndCatalog(latest, latestArtistData);
+    }, delayMs);
+
     return () => clearTimeout(timeout);
   }, [
     user,
     isLoading,
     isAuthLoading,
     gameState.careerMode,
-    gameState.date,
+    gameState.date.year,
+    gameState.date.week,
     activeArtistData?.songs,
     activeArtistData?.releases,
     activeArtistData?.videos,
@@ -31559,6 +31671,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({
     activeArtistData?.hype,
     activeArtistData?.xUsers,
     syncMyArtistAndCatalog,
+    isLeaderTab,
   ]);
 
   // Rebuild all charts in real time purely from real online players (zero NPCs)
@@ -31570,10 +31683,12 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({
     const allLocalVideos = Object.values(gameState.artistsData || {}).flatMap(d => d.videos || []);
 
     const songSig = onlineSongs.map(s => `${s.id}:${s.weeklyStreams}:${s.hot100Points}:${s.totalStreams}`).join("|");
-    const relSig = onlineReleases.map(r => `${r.id}:${r.weeklyActivity}:${r.totalSales}`).join("|");
+    const relSig = onlineReleases.map(r => `${r.id}:${r.weeklyActivity}:${r.totalSales}:${r.isScheduled}`).join("|");
     const vidSig = onlineVideos.map(v => `${v.id}:${v.weeklyViews}:${v.views}`).join("|");
-    const localSig = allLocalSongs.map(s => `${s.id}:${s.isReleased}:${s.streams}:${s.lastWeekStreams}`).join("|");
-    const fullSig = `${gameState.date.year}_${gameState.date.week}__${songSig}__${relSig}__${vidSig}__${localSig}`;
+    const localSongSig = allLocalSongs.map(s => `${s.id}:${s.isReleased}:${s.streams}:${s.lastWeekStreams}`).join("|");
+    const localRelSig = allLocalReleases.map(r => `${r.id}:${r.isScheduled}:${r.copiesSold}`).join("|");
+    const localVidSig = allLocalVideos.map(v => `${v.id}:${v.views}:${v.lastWeekViews}`).join("|");
+    const fullSig = `${gameState.date.year}_${gameState.date.week}__${songSig}__${relSig}__${vidSig}__${localSongSig}__${localRelSig}__${localVidSig}`;
 
     if (fullSig === lastChartHashRef.current) return;
     lastChartHashRef.current = fullSig;
@@ -31611,15 +31726,29 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({
     isLoading,
     isAuthLoading,
     gameState.careerMode,
-    gameState.date,
+    gameState.date.year,
+    gameState.date.week,
     onlineSongs,
     onlineReleases,
     onlineVideos,
-    activeArtist,
+    activeArtist?.id,
+    activeArtist?.name,
+    activeArtist?.image,
     activeArtistData?.songs,
     activeArtistData?.releases,
     activeArtistData?.videos,
   ]);
+
+  const contextValue = useMemo(
+    () => ({
+      gameState,
+      dispatch,
+      activeArtist,
+      activeArtistData,
+      allPlayerArtists,
+    }),
+    [gameState, activeArtist, activeArtistData, allPlayerArtists]
+  );
 
   if (isLoading) {
     return (
@@ -31643,15 +31772,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({
   }
 
   return (
-    <GameContext.Provider
-      value={{
-        gameState,
-        dispatch,
-        activeArtist,
-        activeArtistData,
-        allPlayerArtists,
-      }}
-    >
+    <GameContext.Provider value={contextValue}>
       {children}
     </GameContext.Provider>
   );

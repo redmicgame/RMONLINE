@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { useGame, formatNumber } from "../context/GameContext";
-import { useOnline } from "../context/OnlineContext";
+import { useOnline, useWorldCountdown } from "../context/OnlineContext";
 import ChevronDownIcon from "./icons/ChevronDownIcon";
 import StarIcon from "./icons/StarIcon";
 import FireIcon from "./icons/FireIcon";
@@ -249,7 +249,8 @@ const HomeTab: React.FC = () => {
     activeArtistData,
     allPlayerArtists,
   } = useGame();
-  const { formattedCountdown, activeOnlineArtistsCount } = useOnline();
+  const { activeOnlineArtistsCount } = useOnline();
+  const { formattedCountdown } = useWorldCountdown();
   const { date, careerMode, activeArtistId } = gameState;
   const [isSwitcherOpen, setIsSwitcherOpen] = useState(false);
   const [isEraModalOpen, setIsEraModalOpen] = useState(false);
